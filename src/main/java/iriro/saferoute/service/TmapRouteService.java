@@ -1,6 +1,7 @@
 package iriro.saferoute.service;
 
 import iriro.saferoute.dto.RoutePointDto;
+import iriro.saferoute.dto.RouteResponseDto;
 import iriro.saferoute.dto.SafeRouteResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,7 @@ public class TmapRouteService { //Tmap API 연결
     // 외부 API를 호출하기 위한 HTTP 클라이언트 객체 생성
     private final WebClient webClient;
 
-    public SafeRouteResponseDto getPedestrianRoute(
+    public RouteResponseDto getPedestrianRoute(
             double startLat, double startLng, double endLat, double endLng
     ){
         // 1. 요청 body 생성
@@ -65,8 +66,8 @@ public class TmapRouteService { //Tmap API 연결
         }
 
         List<RoutePointDto> routePoints = new ArrayList<>();
-        int totalDistance = 0;
-        int totalTime = 0;
+        Integer totalDistance = 0;
+        Integer totalTime = 0;
         int sequence = 1;
 
         // 4. features 순회
@@ -80,6 +81,16 @@ public class TmapRouteService { //Tmap API 연결
             Map<?, ?> geometry = (Map<?, ?>) geometryObj;
 
             Object typeObj = geometry.get("type");
+
+            // 총 걸린 시간, 총 거리 추출
+            Object propertyObj = feature.get("properties");
+            if(propertyObj == null) continue;
+            Map<?, ?> properties = (Map<?, ?>) propertyObj;
+
+            if(properties.get("totalTime") != null) totalTime = ((Number) properties.get("totalTime")).intValue();
+            if(properties.get("totalDistance") != null) totalDistance = ((Number) properties.get("totalDistance")).intValue();
+
+            // 경로 좌표 추출
             if(!typeObj.equals("LineString")) continue;
 
             Object coordinateObj = geometry.get("coordinates");
@@ -105,12 +116,11 @@ public class TmapRouteService { //Tmap API 연결
             }
         }
 
-        return SafeRouteResponseDto.builder()
+        return RouteResponseDto.builder()
                 .start_latitude(BigDecimal.valueOf(startLat))
                 .start_longitude(BigDecimal.valueOf(startLng))
                 .end_latitude(BigDecimal.valueOf(endLat))
                 .end_longitude(BigDecimal.valueOf(endLng))
-                .safety_score(0) // 아직 계산 전 임시값
                 .totalTime(totalTime)
                 .totalDistance(totalDistance)
                 .routePoints(routePoints)
