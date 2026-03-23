@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 public class RoutePointLogEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long point_id;
+    private Long pointId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_id", nullable = false)
