@@ -23,7 +23,7 @@ public class UserDto {
         return UserEntity.builder()
                 .email(this.email)
                 .pwToken(this.pwToken)
-                .nickName(this.nickName)
+                .nickname(this.nickName)
                 .build();
     }
 }
