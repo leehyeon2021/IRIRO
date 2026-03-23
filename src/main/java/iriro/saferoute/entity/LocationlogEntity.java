@@ -1,6 +1,6 @@
 package iriro.saferoute.entity;
 
-import iriro.common.entity.BaseTime;
+import iriro.community.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
