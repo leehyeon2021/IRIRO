@@ -1,6 +1,8 @@
 package iriro.community.entity;
 
+import iriro.common.entity.BaseTime;
 import iriro.community.dto.BoardDto;
+import iriro.saferoute.entity.LocationlogEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +36,7 @@ public class BoardEntity extends BaseTime {
 
     @ManyToOne
     @JoinColumn( name = "log_id")
-    private LogEntity logEntity;
+    private LocationlogEntity locationlogEntity;
 
     // Entity --> Dto 변환
     public BoardDto boardDto(){
@@ -43,8 +45,8 @@ public class BoardEntity extends BaseTime {
                 .boardTitle(this.boardTitle)
                 .boardContent(this.boardContent)
                 .recommendCount(this.recommendCount)
-                .createDate(this.getCreateDate().toString())
-                .updateDate(this.getUpdateDate().toString())
+                .createDate(this.getCreatedAt().toString())
+                .updateDate(this.getUpdatedAt().toString())
                 .build();
     }
 

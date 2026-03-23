@@ -16,8 +16,7 @@ public class BoardDto {
     private Integer recommendCount;
     private String createDate;
     private String updateDate;
-    private String createDate;
-    private String updateDate;
+
 
     // + Dto --> Entity 변환
     public BoardEntity boardEntity(){
