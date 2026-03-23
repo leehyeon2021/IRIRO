@@ -1,5 +1,6 @@
 package iriro.saferoute.entity;
 
+import iriro.common.entity.BaseTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,9 +15,9 @@ import java.math.BigDecimal;
 @Builder
 @Entity
 @Table(name = "route_log")
-public class RoutePointLogEntity {
+public class RoutePointLogEntity{
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long point_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
