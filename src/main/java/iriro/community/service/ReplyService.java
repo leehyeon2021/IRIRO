@@ -25,6 +25,14 @@ public class ReplyService {
         return false;
     }
 
+    // 2. 댓글 삭제
+    public boolean rpDelete(Integer replyId){
+        try{ replyRepository.deleteById(replyId);
+        return true; } catch (Exception e){
+        return false;}
+    }
+
+
 
 
 }
