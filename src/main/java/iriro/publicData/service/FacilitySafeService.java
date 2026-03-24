@@ -3,16 +3,13 @@ package iriro.publicData.service;
 import iriro.publicData.dto.FacilitySafeDto;
 import iriro.publicData.entity.FacilitySafeEntity;
 import iriro.publicData.repository.FacilitySafeRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor @Transactional
+@Service @RequiredArgsConstructor
 public class FacilitySafeService {
     private final FacilitySafeRepository fr;
 
