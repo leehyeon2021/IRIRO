@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @AllArgsConstructor @NoArgsConstructor @Data @Builder
-public class SafetyFacilityDto {
+public class SafetyFacDto {
 
-    private String facilityName; // 안전 시설물 명
+    private String facType; // 안전시설물 타입
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
 
