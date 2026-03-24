@@ -22,7 +22,15 @@ public class CrimeRoadFetchService{
     private final CrimeRoadRepository cr;
 
     // (공공데이터 수집) 범죄자도로명
-
+//    public Map<String , Objects> fetchCrimeRoad(){
+//        // * 한 번에 1000번 만 된대
+//        int numOfRows = 1000;
+//        int totalCount = 0;
+//        int totalPages = 1;
+//
+//        // 반복
+//        for(int page=1;page <= total)
+//    }
 
 
 }
