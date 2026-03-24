@@ -39,7 +39,7 @@ public class BoardEntity extends BaseTime {
     private LocationlogEntity locationlogEntity;
 
     // Entity --> Dto 변환
-    public BoardDto boardDto(){
+    public BoardDto toDto(){
         return BoardDto.builder()
                 .boardId(this.boardId)
                 .userId(this.userEntity.getUserId())
