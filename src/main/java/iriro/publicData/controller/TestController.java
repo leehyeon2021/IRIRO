@@ -18,7 +18,7 @@ public class TestController {
     // 범죄자거주도로명주소
     @GetMapping("/test1")
     public ResponseEntity<?> test1(){
-        return ResponseEntity.ok(cf.fetchCrimeRoad());
+        return ResponseEntity.ok(ff.fetchPoliceStation());
 //        return ResponseEntity.ok(cf.fetchCrimeRoad());
     }
 }
