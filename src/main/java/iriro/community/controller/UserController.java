@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
+    @Autowired // 주방장을 불러오거라
     private UserService userService;
 
     // 1. 회원가입 post = create = save
     @PostMapping("/join")
+    // http://localhost:8080/user/join
+    // { "email" : "soso@sadsa.com","pwToken" : "1234","nickName" : "박진감"}
     public ResponseEntity<?> join(@RequestBody UserDto userDto){
         return ResponseEntity.ok( userService.join(userDto));
     }
