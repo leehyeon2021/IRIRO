@@ -78,7 +78,7 @@ public class CrimeRoadFetchService{
             }
             return true;
         }catch (Exception e){
-            System.out.println("저장 안 됨ㅠㅠ: "+e);
+            System.out.println("저장 실패 사유: "+e);
             return false;
         }
     }
