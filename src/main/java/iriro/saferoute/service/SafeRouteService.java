@@ -44,20 +44,18 @@ public class SafeRouteService {
         // 우회 경유지 목록 생성 ( null이면 기본 경로 반환)
         List<DetourWayPointDto> detourPoints = riskPointFilterService.getDetourWayPoint(routePoints, firstInDangerPoints);
         System.out.println("우회 경유지 목록: " + Arrays.deepToString(detourPoints.toArray()));
+        System.out.println("우회 경유지 크기: " + detourPoints.size() );
 
-        RouteResponseDto detoureRoute = tmapRouteService.getDetourRoute(routeRequestDto, detourPoints);
+        RouteResponseDto detourRoute = tmapRouteService.getDetourRoute(routeRequestDto, detourPoints);
+        // 테스트용 안전경로 반환(우회 경로, 점수) -> 추후에 삭제
         return SafeRouteResponseDto.builder()
-                .start_latitude().start_longitude()
-                .end_latitude().end_longitude()
-                .totalDistance().totalTime().routePoints().safety_score()
+                .detourRoute(detourRoute).safety_score(100).build();
 
 //        if ( detourRoute == null || detourRoute.isEmpty() ){
 //            //기본 경로 함수 안전로직 검사
 //        }else{
 //            //우회 경유지에 대한 경로 함수 안전로직 검사 ++추가 TmapAPI 호출
 //        }
-
-        return null; //임의 값 추후에 삭제
     }
 
     // 안전 점수 계산 함수 --> 추후에.. 3/26 에정
