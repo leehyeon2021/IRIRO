@@ -12,8 +12,6 @@ import java.util.Map;
 /* 쓰는 법
 private final GeocodingService gs;
 double[] coords = gs.getCoords("서울특별시 강남구 어쩌고");
-
-coords[0] = 경도(lng), coords[1] = 위도(lat)
 */
 
 @Service
