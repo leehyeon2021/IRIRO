@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -16,8 +17,8 @@ public class SafeRouteService {
     private final RiskPointFilterService riskPointFilterService;
 
     //지금은 위험지역 샘플을 가져오지만 조회를 통해 가져옴 테스트 리스트 -> 추후에 삭제
-    List<SafetyFacDto> safetyPoints = TestSampleCode.safeRoutePoint;
-    List<RoutePointDto> dangerPoints = TestSampleCode.dangerRoutePoints;
+    List<SafetyFacPointDto> safetyPoints = TestSampleCode.safeRoutePoint;
+    List<RiskPointDto> dangerPoints = TestSampleCode.dangerRoutePoints;
 
     // 안전 경로 계산 함수
     public SafeRouteResponseDto getSafeRoute(RouteRequestDto routeRequestDto){
@@ -31,22 +32,35 @@ public class SafeRouteService {
         // 해당 객체 내에 있는 시작점과 끝점의 위/경도를 가지고 위험구역 boundingbox를 만듬
         BboxDto bbox = createBox( routePoints );
         // 구역 내에 있는지 확인하는 함수 isInsideBbox()로 안전위치 리스트를 필터링함.
-        List<SafetyFacDto> inSafetyPoints = safetyPoints.stream().filter(point ->
+        List<SafetyFacPointDto> inSafetyPoints = safetyPoints.stream().filter(point ->
                 isInsideBbox(point.getLatitude().doubleValue(), point.getLongitude().doubleValue(),bbox))
                 .toList();
 
         // 위험 리스트 필터링
-        List<RoutePointDto> firstInDangerPoints = dangerPoints.stream().filter(point ->
-                        isInsideBbox(point.getLat().doubleValue(), point.getLng().doubleValue(),bbox))
+        List<RiskPointDto> firstInDangerPoints = dangerPoints.stream().filter(point ->
+                        isInsideBbox(point.getLatitude().doubleValue(), point.getLongitude().doubleValue(),bbox))
                 .toList();
 
-        // 경유지 목록 생성 (우회 경로로 쓸) -> 아직 미완 기본 경로, 1차 필터링된 위험 위치 리스트
-        List<DetourWayPointDto> detourRoute = riskPointFilterService.getDetourWayPoint(routePoints, firstInDangerPoints);
+        // 우회 경유지 목록 생성 ( null이면 기본 경로 반환)
+        List<DetourWayPointDto> detourPoints = riskPointFilterService.getDetourWayPoint(routePoints, firstInDangerPoints);
+        System.out.println("우회 경유지 목록: " + Arrays.deepToString(detourPoints.toArray()));
 
-        // 안전 로직 계산 --> 추후에
+        RouteResponseDto detoureRoute = tmapRouteService.getDetourRoute(routeRequestDto, detourPoints);
+        return SafeRouteResponseDto.builder()
+                .start_latitude().start_longitude()
+                .end_latitude().end_longitude()
+                .totalDistance().totalTime().routePoints().safety_score()
+
+//        if ( detourRoute == null || detourRoute.isEmpty() ){
+//            //기본 경로 함수 안전로직 검사
+//        }else{
+//            //우회 경유지에 대한 경로 함수 안전로직 검사 ++추가 TmapAPI 호출
+//        }
 
         return null; //임의 값 추후에 삭제
     }
+
+    // 안전 점수 계산 함수 --> 추후에.. 3/26 에정
 
     // boundingBox를 만드는 함수
     public BboxDto createBox(List<RoutePointDto> routePoints){
@@ -57,17 +71,17 @@ public class SafeRouteService {
             return null;
         }
 
-        double minLat = routePoints.get(0).getLat().doubleValue();
-        double maxLat = routePoints.get(0).getLat().doubleValue();
-        double minLng = routePoints.get(0).getLat().doubleValue();
-        double maxLng = routePoints.get(0).getLat().doubleValue();
+        double minLat = routePoints.get(0).getLatitude().doubleValue();
+        double maxLat = routePoints.get(0).getLatitude().doubleValue();
+        double minLng = routePoints.get(0).getLatitude().doubleValue();
+        double maxLng = routePoints.get(0).getLatitude().doubleValue();
 
         // 가장 크고 작은 위 경도 값 구하기
         for(RoutePointDto point : routePoints){
-            minLat = Math.min(minLat, point.getLat().doubleValue() );
-            minLng = Math.min(minLng, point.getLng().doubleValue() );
-            maxLat = Math.max(maxLat, point.getLat().doubleValue() );
-            maxLng = Math.max(maxLng, point.getLng().doubleValue() );
+            minLat = Math.min(minLat, point.getLatitude().doubleValue() );
+            minLng = Math.min(minLng, point.getLongitude().doubleValue() );
+            maxLat = Math.max(maxLat, point.getLatitude().doubleValue() );
+            maxLng = Math.max(maxLng, point.getLongitude().doubleValue() );
         }
 
         // 50m 정도 margin
