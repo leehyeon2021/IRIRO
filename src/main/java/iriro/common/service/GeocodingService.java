@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 /* 쓰는 법
-private final GeocodingService 지오;
-double[] 코드 = 지오.getCoords("서울특별시 강남구 어쩌고");
+private final GeocodingService gs;
+double[] coords = gs.getCoords("서울특별시 강남구 어쩌고");
+
+coords[0] = 경도(lng), coords[1] = 위도(lat)
 */
 
 @Service
