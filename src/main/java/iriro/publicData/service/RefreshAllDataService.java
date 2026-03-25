@@ -17,12 +17,10 @@ public class RefreshAllDataService {
 
         // 1. 전체 삭제 - db에 들어간 파일 전체 삭제
 
-//        // 2. 순서대로 저장 - sleep 같은 거 해야할 것 같음
-//        ffs.fetchPoliceStation();    // 경찰서
-//        ffs.fetchSafeHouse();        // 안심지킴이집
-//        ffs.fetchSafeLight();        // 보안등
-//        ffs.fetchCctv();             // CCTV
-//        ffs.fetchSafeBell();         // 안전벨
-//        cfs.fetchCrimeRoad();        // 범죄자도로명
+        // 2. 순서대로 저장 - sleep 같은 거 해야할 것 같음
+        ffs.fetchPoliceStation();    // 경찰서
+        ffs.fetchSafeHouse();        // 안심지킴이집
+        ffs.fetchSafeFac();          // 안전시설물(보안등,CCTV,안전벨)
+        cfs.fetchCrimeRoad();        // 범죄자거주도로명
     }
 }
