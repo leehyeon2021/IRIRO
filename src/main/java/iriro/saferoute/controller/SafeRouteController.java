@@ -24,4 +24,11 @@ public class SafeRouteController {
         return ResponseEntity.ok(tmapRouteService.getPedestrianRoute(routeRequestDto));
     }
 
+    // 경유지 경로 반환(test2)
+    @PostMapping("/tmaptest2")
+    public ResponseEntity<?> test2(@RequestBody RouteRequestDto routeRequestDto){
+        String passList = "126.9525000,37.3908000_126.9460000,37.3923000_126.9395000,37.3945000_126.9345000,37.3962000"; // 샘플 경유지 4개
+        return ResponseEntity.ok(tmapRouteService.getDetourRoute(routeRequestDto, passList));
+    }
+
 }
