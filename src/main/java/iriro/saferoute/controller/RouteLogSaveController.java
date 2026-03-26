@@ -1,12 +1,11 @@
 package iriro.saferoute.controller;
 
 
+import iriro.saferoute.dto.SaveLogDto;
 import iriro.saferoute.service.RouteLogSaveService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,7 +16,7 @@ public class RouteLogSaveController {
 
     // 후기 저장
     @PostMapping("/savelog")
-    public ResponseEntity<?> saveLog(){
-        return ResponseEntity.ok( true );
+    public ResponseEntity<?> saveLog(@RequestParam Long logId, @RequestParam Integer rating){
+        return ResponseEntity.ok( routeLogSaveSvc.updateLogReview(logId, rating));
     }
 }
