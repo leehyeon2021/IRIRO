@@ -41,7 +41,7 @@ public class BoardController {
         String loginEmail = null;
         // 만약에 토큰이 없거나 Bearer 시작하지 않으면 문자열.startsWith("시작문자")
         // : 문자열내 시작문자가 존재하면 true
-        if(token != null || token.startsWith("Bearer")){ // 정말로 토큰이 null이 아니고 Bearer로 시작할 때만
+        if(token != null && token.startsWith("Bearer")){ // 정말로 토큰이 null이 아니고 Bearer로 시작할 때만
            String realToken = token.substring(7); // "Bearer "를 제거하고 토큰을 꺼낸다.
             loginEmail = jwtService.getClaim(realToken);
         }
