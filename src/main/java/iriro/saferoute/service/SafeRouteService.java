@@ -25,14 +25,6 @@ public class SafeRouteService {
     private final CrimeRoadRepository crimeRoadRepository;
     private final FacilitySafeRepository facilitySafeRepository;
 
-    // Bbox안에 있는지 체크하는 함수 .. 1차 필터링
-    public boolean isInsideBbox(double lat, double lng, BboxDto bbox){
-        return lat >= bbox.getMinLat()
-                && lat <= bbox.getMaxLat()
-                && lng >= bbox.getMinLng()
-                && lng <= bbox.getMaxLng();
-    }
-
     // boundingBox를 만드는 함수 .. 1차 필터링
     public BboxDto createBox(List<RoutePointDto> routePoints){
 
