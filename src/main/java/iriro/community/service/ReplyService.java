@@ -51,7 +51,6 @@ public class ReplyService {
         // * 어떤 글에 다는 댓글인지
         Optional<BoardEntity> boardOptional = boardRepository.findById(replyDto.getBoardId());
 
-        ReplyEntity savedEntity  = replyRepository.save(saveReplyEntity);
         if(boardOptional.isPresent()){
             saveReplyEntity.setBoardEntity(boardOptional.get());
 
