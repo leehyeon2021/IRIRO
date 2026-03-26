@@ -84,10 +84,12 @@ public class CrimeRoadFetchService{
 
                     // 저장
                     cr.save(CrimeRoadEntity.builder()
-                            .criZip(Integer.parseInt((String) item.get("roadNmZip")))
-                            .criSgg((String) item.get("sggNm"))
-                            .criRoad(roadName)
-                            .criType(roadType)
+                                .criZip(Integer.parseInt((String) item.get("roadNmZip")))
+                                .criSgg((String) item.get("sggNm"))
+                                .criRoad(roadName)
+                                .criType(roadType)
+                                .criLat(coords[0])
+                                .criLng(coords[1])
                             .build());
                 }
             }
