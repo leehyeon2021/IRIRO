@@ -7,6 +7,7 @@ import iriro.community.repository.BoardRepository;
 import iriro.community.service.BoardService;
 import iriro.community.service.JWTService;
 import iriro.community.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +68,13 @@ public class BoardController {
     // 4. 리뷰 개별 삭제 (회원)
     // http://localhost:8080/board/rvdelete?boardId=11
     @DeleteMapping("/rvdelete")
-    public ResponseEntity<?> rvDelete(@RequestParam Integer boardId , HttpSession session){
-        Object object = session.getAttribute("email");
-        if(object == null){return ResponseEntity.ok(false);}
-        String loginEmail = (String)object;
+    public ResponseEntity<?> rvDelete(@RequestParam Integer boardId , HttpServletRequest request){
+        // 요청헤더에서 Authorization 토큰 꺼내기.
+        String token = request.getHeader("Authorization");
+        // 2. JWTService를 이용해 토큰 안의 이메일 추출
+        String loginEmail = jwtService.getClaim(token);
+
+        // 서비스한테 삭제하라고 고함지름
         boolean result = boardService.rvDelete(boardId,loginEmail);
         return ResponseEntity.ok(result);
 
