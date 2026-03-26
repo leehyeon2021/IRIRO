@@ -20,7 +20,7 @@ public class SafeFacFilterService {
         // [2차 필터] : 1차 필터링된 위험 위치 리스트를 경로 50m 안에 들어오는 위험 위치들만 필터링, 길의 타입에 따라 다르게 필터링.
         // 2차 필터 적용 후 바로 반환
         return inSafetyPoints.stream().filter(point ->
-                geoFilterSvc.getMinDistance(routePoints, point.getLatitude().doubleValue(), point.getLongitude().doubleValue()) <= SAFE_RADIUS ).toList();
+                geoFilterSvc.getMinDistance(routePoints, point.getLatitude(), point.getLongitude()) <= SAFE_RADIUS ).toList();
     }
 
 }

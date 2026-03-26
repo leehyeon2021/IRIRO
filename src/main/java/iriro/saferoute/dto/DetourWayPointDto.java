@@ -9,6 +9,6 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor@NoArgsConstructor@Data@Builder
 public class DetourWayPointDto {
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private Double latitude;
+    private Double longitude;
 }

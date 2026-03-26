@@ -17,8 +17,8 @@ public class GeoFilterService {
         double minDistance = Double.MAX_VALUE;
 
         for(RoutePointDto point : routePoints){
-            double pointLat = point.getLatitude().doubleValue();
-            double pointLng = point.getLongitude().doubleValue();
+            double pointLat = point.getLatitude();
+            double pointLng = point.getLongitude();
 
             double distance = distanceMeter(pointLat, pointLng, latitude, longitude);
 
@@ -33,12 +33,12 @@ public class GeoFilterService {
         double minDistance = Double.MAX_VALUE;
         int sequence = 0;
 
-        double riskLat = riskZone.getLatitude().doubleValue();
-        double riskLng = riskZone.getLongitude().doubleValue();
+        double riskLat = riskZone.getLatitude();
+        double riskLng = riskZone.getLongitude();
 
         for(RoutePointDto point : routePoints){
-            double pointLat = point.getLatitude().doubleValue();
-            double pointLng = point.getLongitude().doubleValue();
+            double pointLat = point.getLatitude();
+            double pointLng = point.getLongitude();
 
             double distance = distanceMeter(pointLat, pointLng, riskLat, riskLng);
 

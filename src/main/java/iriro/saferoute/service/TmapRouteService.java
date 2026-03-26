@@ -141,8 +141,8 @@ public class TmapRouteService { //Tmap API 연결
                     continue;
                 }
 
-                BigDecimal longitude = BigDecimal.valueOf(((Number) lonObj).doubleValue());
-                BigDecimal latitude = BigDecimal.valueOf(((Number) latObj).doubleValue());
+                double longitude = ((Number) lonObj).doubleValue();
+                double latitude = ((Number) latObj).doubleValue();
 
                 routePoints.add(new RoutePointDto(latitude, longitude, sequence++));
             }
@@ -150,10 +150,10 @@ public class TmapRouteService { //Tmap API 연결
         List<RoutePointDto> deduplicateRoutePoints = deduplicateRoutePoints(routePoints);
 
         return RouteResponseDto.builder()
-                .start_latitude(BigDecimal.valueOf(routeRequestDto.getStartLat()))
-                .start_longitude(BigDecimal.valueOf(routeRequestDto.getStartLng()))
-                .end_latitude(BigDecimal.valueOf(routeRequestDto.getEndLat()))
-                .end_longitude(BigDecimal.valueOf(routeRequestDto.getEndLng()))
+                .start_latitude(routeRequestDto.getStartLat())
+                .start_longitude(routeRequestDto.getStartLng())
+                .end_latitude(routeRequestDto.getEndLat())
+                .end_longitude(routeRequestDto.getEndLng())
                 .totalTime(totalTime)
                 .totalDistance(totalDistance)
                 .routePoints(deduplicateRoutePoints)

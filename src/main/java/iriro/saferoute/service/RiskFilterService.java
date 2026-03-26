@@ -20,7 +20,7 @@ public class RiskFilterService {
 
         // [2차 필터] : 1차 필터링된 위험 위치 리스트를 경로 50m 안에 들어오는 위험 위치들만 필터링, 길의 타입에 따라 다르게 필터링.
         List<RiskPointDto> secondDangerPoints = inDangerPoints.stream().filter(point ->
-                geoFilterSvc.getMinDistance(routePoints, point.getLatitude().doubleValue(), point.getLongitude().doubleValue()) <= getDangerRadius(point.getRoadType()) ).toList(); // 대로 15m, 로 30m, 길 50m 위험반경 생성
+                geoFilterSvc.getMinDistance(routePoints, point.getLatitude(), point.getLongitude()) <= getDangerRadius(point.getRoadType()) ).toList(); // 대로 15m, 로 30m, 길 50m 위험반경 생성
 
         // 2차 필터 적용 후 리스트가 비어 있으면 바로 리턴
         if(secondDangerPoints.isEmpty()) return new ArrayList<>();
@@ -29,13 +29,13 @@ public class RiskFilterService {
         List<RiskPointDto> thirdDangerPoints = new ArrayList<>();
         for (RiskPointDto secondPoint : secondDangerPoints) {
 
-            double secondLat = secondPoint.getLatitude().doubleValue(); // 탐색할 위험위치의 위도
-            double secondLng = secondPoint.getLongitude().doubleValue(); // 탐색할 위험위치의 경도
+            double secondLat = secondPoint.getLatitude(); // 탐색할 위험위치의 위도
+            double secondLng = secondPoint.getLongitude(); // 탐색할 위험위치의 경도
 
             boolean canAdd = true; // 추가할 수 있는지 체크하는 변수
 
             for (RiskPointDto point : thirdDangerPoints) {
-                double distance = geoFilterSvc.distanceMeter(secondLat, secondLng, point.getLatitude().doubleValue(), point.getLongitude().doubleValue());
+                double distance = geoFilterSvc.distanceMeter(secondLat, secondLng, point.getLatitude(), point.getLongitude());
                 if (distance < MERGE_DISTANCE_METER) { // 하나라도 200m 이하면 false
                     canAdd = false;
                     break;
