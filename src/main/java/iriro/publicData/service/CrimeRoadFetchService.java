@@ -73,14 +73,18 @@ public class CrimeRoadFetchService{
                     // 도로명 분리(criRoad , criType)
                     String roadName = (String) item.get("roadNm");
                     String roadType = getRoadSuffix(roadName);
-                    String fullAdr = "서울특별시 "+item.get("ssgNm")+" "+roadName;
+                    // 주소 조합해서 지옥코딩하기
+                    String fullAdr = "서울특별시 "+item.get("sggNm")+" "+roadName;
                     System.out.println(fullAdr);
+                    // 지오코딩 좌표 가져와서 넣기
                     double[] coords = gs.getCoords(fullAdr);
+                    if(coords==null)continue; // 오류 무서워서 그냥 넣음
 
+                    // 저장
                     cr.save(CrimeRoadEntity.builder()
                             .criZip(Integer.parseInt((String) item.get("roadNmZip")))
                             .criSgg((String) item.get("sggNm"))
-                            .criRoad()
+                            .criRoad(roadName)
                             .criType(roadType)
                             .build());
                 }
