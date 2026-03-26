@@ -29,35 +29,31 @@ public class BoardService {
 
     // 1. 리뷰 등록 (회원)
     public boolean rvAdd(BoardDto boardDto, String loginEmail) {
+
+        // 비회원이면 글쓰기 거절
+        if (loginEmail == null) {
+            System.out.println("비회원 접근 불가능 : 로그인 후 이용해주세요.");
+            return false;
+        }
+        // ============== 회원만 글쓰자 ================
         // 1] dto --> entity 변환
         BoardEntity saveEntity = boardDto.toEntity();
 
         // 유저 엔티티를 담을 변수
         UserEntity userEntity;
 
-        if (loginEmail != null) {
-            Optional<UserEntity> entityOptional = userRepository.findByEmail(loginEmail);
-            if (entityOptional.isPresent()) { // 로그인한 사용자 발견
-                userEntity = entityOptional.get();
-            } else {
-                // 이메일은 있는데 DB에 없다면.. 1번으로 처리하거나 실패.
-                return false; // 존재하지 않은 회원으로 실패
-            }
-        } else {
-            // loginEmail이 null 이다 -> 1번 유저(비회원) 처리.
-            userEntity = userRepository.findById(1).get();
-        }
+        Optional<UserEntity> entityOptional = userRepository.findByEmail(loginEmail);
+        if (entityOptional.isPresent()) { // 로그인한 사용자 발견
+            userEntity = entityOptional.get();
 
             // 찾은 유저를 게시물에 연결
             saveEntity.setUserEntity((userEntity));
 
             BoardEntity savedEntity = boardRepository.save(saveEntity); // 2] entity 저장한다.
-            if (savedEntity.getBoardId() > 0) {
-                return true;
-            } else {
-                return false;
+            return savedEntity.getBoardId() > 0;
             }
-        }
+            return false;
+    }
 
     // 2. 리뷰 전체 조회
     public List<BoardDto> rvAllView() {
