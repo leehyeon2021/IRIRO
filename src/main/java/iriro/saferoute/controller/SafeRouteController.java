@@ -12,24 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api") //공통 주소 입력
 public class SafeRouteController {
 
-    // 테스트용 일반 경로 반환 확인
-    private final TmapRouteService tmapRouteSvc;
     private final SafeRouteService safeRouteSvc;
 
     // 안전 경로 반환
-
-    // 안전 경로 로그 저장
-
-    // 일반 경로 반환(test)
-    @PostMapping("/tmaptest")
-    public ResponseEntity<?> test(@RequestBody RouteRequestDto routeRequestDto){
-        return ResponseEntity.ok(tmapRouteSvc.getPedestrianRoute(routeRequestDto));
-    }
-
-    // 경유지 경로 반환(test2)
-    @PostMapping("/tmaptest2")
+    @PostMapping("/saferoute")
     public ResponseEntity<?> test2(@RequestBody RouteRequestDto routeRequestDto){
-        return ResponseEntity.ok( safeRouteSvc.getSafeRoute(routeRequestDto) ); // safety_score이 100이면 우회경로, 90이면 단일 위회 경로, 80이면 기본 경로 반환했다는 뜻
+        return ResponseEntity.ok( safeRouteSvc.getSafeRoute(routeRequestDto) );
     }
 
 }
