@@ -59,6 +59,7 @@ public class CrimeRoadFetchService{
                 if (page == 1) {
                     totalCount = (int) body.get("totalCount");
                     totalPages = (totalCount + numOfRows - 1) / numOfRows;
+                    System.out.println("totalCount: "+totalCount);
                 }
 
                 // 저장
