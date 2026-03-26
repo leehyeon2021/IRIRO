@@ -49,7 +49,8 @@ public class ReplyService {
     Optional<ReplyEntity> replyOptional = replyRepository.findById(replyId);
     if(replyOptional.isPresent()){
         ReplyEntity reply = replyOptional.get();
-        if(reply.getUserEntity().getEmail().equals(loginEmail)){
+        if(     reply.getUserEntity() != null && // .getUserEntity()가 null일 수도 있으니까ㅣ
+                reply.getUserEntity().getEmail().equals(loginEmail)){
             replyRepository.deleteById(replyId);
             return true;
         }
