@@ -70,11 +70,13 @@ public class FacilitySafeFetchService {
 
                 // item 저장(List임)
                 List<Map<String,Object>> itemList = (List<Map<String, Object>>) body.get("items");
+
+                // 저장
                 for(Map<String,Object>item:itemList){
 
                     // 수정 저장 용도
-                    String facName = ((String) item.get("facName"));
-                    String facAdd = ((String) item.get("facName"));
+                    String facName = ((String) item.get("storNm"));
+                    String facAdd = ((String) item.get("rdnmadr"));
                     String facSgg = (String) item.get("signguNm");
                     String facUse = (String) item.get("useYn");
                     String facTel = (String) item.get("phoneNumber");
@@ -82,7 +84,7 @@ public class FacilitySafeFetchService {
                     double lng = Double.parseDouble((String) item.get("longitude"));
 
                     // 비교 위한 저장
-                    deleteCheck.add(facName.trim()+facAdd.trim());
+                    deleteCheck.add(facName+facAdd);
 
                     // DB에 있나요
                     Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd( facName, facAdd );
@@ -92,7 +94,7 @@ public class FacilitySafeFetchService {
                         exist.setFacTel(facTel);
                         exist.setFacSgg(facSgg);
                         exist.setFacLat(lat);
-                        exist.setFacLng(lng);
+                        exist.setFacLng(lng); // @Transactional 있으니 save 생략 가능
                     }else {
                         fr.save(FacilitySafeEntity.builder()
                                 .facType("안심지킴이집")
@@ -111,7 +113,7 @@ public class FacilitySafeFetchService {
             for(FacilitySafeEntity db : oldList){
                 String dbNameAdd = db.getFacName().trim() + db.getFacAdd().trim();
                 if(!deleteCheck.contains(dbNameAdd)){
-                    System.out.println("중복 삭제: "+db + " " + dbNameAdd);
+                    System.out.println("중복/사라진 데이터 삭제: "+db + " " + dbNameAdd);
                     fr.delete(db);
                 }
             }
@@ -121,7 +123,7 @@ public class FacilitySafeFetchService {
 
     // 경찰서 저장 (3000여 개 중 서울은 400여 개)
     public boolean fetchPoliceStation() {
-        int numOfRows = 500;
+        int numOfRows = 100;
         int totalCount = 0;
         int totalPages = 1;
 
@@ -220,7 +222,7 @@ public class FacilitySafeFetchService {
             for(FacilitySafeEntity db : oldList){
                 String dbNameAdd = db.getFacName().trim() + db.getFacAdd().trim();
                 if(!deleteCheck.contains(dbNameAdd)){
-                    System.out.println("중복 삭제: "+db + " " + dbNameAdd);
+                    System.out.println("중복/사라진 데이터 삭제: "+db + " " + dbNameAdd);
                     fr.delete(db);
                 }
             }
@@ -284,8 +286,16 @@ public class FacilitySafeFetchService {
                     // 시설 코드 꺼내기
                     String faciCode = (String) item.get("FACI_CODE");
                     if(!typeMapping.containsKey(faciCode))continue;
+                    String facType = (String) typeMapping.get(faciCode);
+                    String facName = ((String) item.get("ASG_NM")).trim();
+                    String facAdd = ((String) item.get("DELOC")).trim();
+                    String facSgg = (String) item.get("SGG_NAME");
+                    String facTel = (String) item.get("INST_TELNO");
 
-                    // 좌표 ("POINT_WKT":"POINT (위도 경도)")
+                    // 비교 위한 저장소 저장
+                    deleteCheck.add(facName.trim()+facAdd.trim());
+
+                    // 좌표 ("POINT_WKT":"POINT (위도 경도)") 가공
                     String pointWkt = (String) item.get("POINT_WKT");
                     if(pointWkt == null || pointWkt.isEmpty()) continue;
                         // 숫자, 마침표, 공백 빼고 모두 제거([이거중하나]^제외0-9모든숫자.마침표랑공백)
@@ -295,22 +305,38 @@ public class FacilitySafeFetchService {
                     double lng = Double.parseDouble(coords[0]);
                     double lat = Double.parseDouble(coords[1]);
 
-                    // 설치 대수는 빈값 체크하고 .parseInt해야 함
+                    // 설치 대수는 빈값 체크하고 .parseInt
                     String instlCnt = (String) item.get("INSTL_CNT");
                     Integer instlcut = instlCnt!=null&&!instlCnt.isEmpty() ? Integer.parseInt(instlCnt) : null;
 
                     // DB에 있나요
-
-                    fr.save(FacilitySafeEntity.builder()
-                            .facType((String)typeMapping.get(faciCode))          // 안전벨/CCTV/보안등
-                            .facSgg((String)item.get("SGG_NAME"))
-                            .facName((String)item.get("ASG_NM"))
-                            .facAdd((String)item.get("DELOC"))
-                            .facLat(lat)
-                            .facLng(lng)
-                            .facCount(instlcut)
-                            .facTel((String)item.get("INST_TELNO"))
-                            .build());
+                    Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd(facName,facAdd);
+                    if(exists.isPresent()){
+                        FacilitySafeEntity exist = exists.get();
+                        exist.setFacTel(facTel);
+                        exist.setFacSgg(facSgg);
+                        exist.setFacLng(lng);
+                        exist.setFacLat(lat);
+                    }else {
+                        fr.save(FacilitySafeEntity.builder()
+                                .facType(facType)
+                                .facSgg(facSgg)
+                                .facName(facName)
+                                .facAdd(facAdd)
+                                .facLat(lat)
+                                .facLng(lng)
+                                .facCount(instlcut)
+                                .facTel(facTel)
+                                .build());
+                    }
+                }
+            }
+            // 업데이트된 데이터에 없는 기존 데이터 삭제
+            for(FacilitySafeEntity db : oldList){
+                String dbNameAdd = db.getFacName().trim()+db.getFacAdd().trim();
+                if(!deleteCheck.contains(dbNameAdd)){
+                    System.out.println("중복/사라진 데이터 삭제: "+db + " " + dbNameAdd);
+                    fr.delete(db);
                 }
             }
             return true;
