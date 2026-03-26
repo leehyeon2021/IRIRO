@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service @RequiredArgsConstructor
 public class CrimeRoadFetchService{
@@ -62,21 +64,27 @@ public class CrimeRoadFetchService{
                     System.out.println("totalCount: "+totalCount);
                 }
 
-                // 저장
+                // 더 열어
                 Map<String, Object> items = (Map<String, Object>) body.get("items");
                 List<Map<String, Object>> itemList = (List<Map<String, Object>>) items.get("item");
 
+                // 중복 체크용 Set<String>
+                Set<String> list = new HashSet<>();
+
+                // 저장
                 for (Map<String, Object> item : itemList) {
                     String ctpvNm = (String) item.get("ctpvNm");
                     if(ctpvNm==null||!ctpvNm.contains("서울")) continue;
 
-                    // 도로명 분리(criRoad , criType)
+                    // 중복 제거
                     String roadName = (String) item.get("roadNm");
-                    String roadType = getRoadSuffix(roadName);
-                    // 주소 조합해서 지옥코딩하기
+                    String sggNm = (String) item.get("sggNm");
+                    String it = sggNm + "_" + roadName;
+                    if(!list.add(it)) continue;
+
+                    // 주소 조합 + 지오코딩 좌표 저장
                     String fullAdr = "서울특별시 "+item.get("sggNm")+" "+roadName;
                     System.out.println(fullAdr);
-                    // 지오코딩 좌표 가져와서 넣기
                     double[] coords = gs.getCoordsKakao(fullAdr);
                     if(coords==null){
                         System.out.println("좌표 저장 실패: "+fullAdr);
@@ -86,9 +94,9 @@ public class CrimeRoadFetchService{
                     // 저장
                     cr.save(CrimeRoadEntity.builder()
                                 .criZip(Integer.parseInt((String) item.get("roadNmZip")))
-                                .criSgg((String) item.get("sggNm"))
+                                .criSgg(sggNm)
                                 .criRoad(roadName)
-                                .criType(roadType)
+                                .criType(getRoadSuffix(roadName))
                                 .criLat(coords[0])
                                 .criLng(coords[1])
                             .build());
