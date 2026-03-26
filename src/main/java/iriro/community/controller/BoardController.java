@@ -33,9 +33,9 @@ public class BoardController {
         Object object = session.getAttribute("email");
         if(object == null){ return ResponseEntity.ok(false);} // 만약에 비로그인이면 실패
         // 2) 로그인 중이면
-        String email = (String)object;
+        String loginEmail = (String)object;
         // 3) 서비스에게 입력받은 값과 세션에 저장된 값 전달한다.
-        boolean result = boardService.rvAdd(boardDto,email);
+        boolean result = boardService.rvAdd(boardDto,loginEmail);
         return ResponseEntity.ok(result);
     }
 
@@ -56,7 +56,14 @@ public class BoardController {
     // 4. 리뷰 개별 삭제 (회원)
     // http://localhost:8080/board/rvdelete?boardId=2
     @DeleteMapping("/rvdelete")
-    public boolean rvDelete(@RequestParam Integer boardId ,
+    public ResponseEntity<?> rvDelete(@RequestParam Integer boardId , HttpSession session){
+        Object object = session.getAttribute("email");
+        if(object == null){return ResponseEntity.ok(false);}
+        String loginEmail = (String)object;
+        boolean result = boardService.rvDelete(boardId,loginEmail);
+        return ResponseEntity.ok(result);
+
+    }
 
     // 5. 글 추천
     // http://localhost:8080/board/ddabong
