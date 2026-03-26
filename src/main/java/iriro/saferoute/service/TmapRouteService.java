@@ -159,7 +159,7 @@ public class TmapRouteService { //Tmap API 연결
     }
 
 
-    // 불필요한 연속된 중복된 경로를 제거하는 함수.
+    // 불필요한 연속된 중복된 경로를 제거하고 순서 재정렬하는 함수.
     private List<RoutePointDto> deduplicateRoutePoints(List<RoutePointDto> routePoints) {
         List<RoutePointDto> DDRoutePoints = new ArrayList<>();
         RoutePointDto prev = null;
@@ -171,6 +171,18 @@ public class TmapRouteService { //Tmap API 연결
             }
             prev = current;
         }
+        resetSequence(DDRoutePoints); // 시퀀스 순서 재정렬
         return DDRoutePoints;
+    }
+
+    // 순서(인덱스) 재정렬하는 함수
+    private List<RoutePointDto> resetSequence(List<RoutePointDto> routePoints) {
+        int sequence = 1;
+
+        for (RoutePointDto point : routePoints) {
+            point.setSequence(sequence++);
+        }
+
+        return routePoints;
     }
 }
