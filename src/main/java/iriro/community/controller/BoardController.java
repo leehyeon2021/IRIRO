@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/board")
@@ -38,14 +40,16 @@ public class BoardController {
     public ResponseEntity<?> rbAdd(@RequestBody BoardDto boardDto ,
                                    @RequestHeader("Authorization")String token) {
 
-        // 만약에 토큰이 없거나 Bearer로 시작하지 않으면  + 문자열.startsWith("시작문자")
+        String loginEmail = null; // loginEmail 변수 선언
+
+        // 만약에 토큰이 존재하고 Bearer로 시작할 때만 값을 꺼냄.  + 문자열.startsWith("시작문자")
         if (token != null && !token.startsWith("Bearer")) {
-            loginEmail = null; // null 처리
-        } else {
             String realToken = token.substring(7);
-            loginEmail = jwtService.getClaim(realToken); // 있으면 이메일 꺼냄.
+            loginEmail = jwtService.getClaim(realToken);
         }
-    }
+        boolean result = boardService.rvAdd(boardDto,loginEmail);
+        return ResponseEntity.ok(result);
+        }
 
     // 2. 리뷰 전체 조회
     // http://localhost:8080/board/all
