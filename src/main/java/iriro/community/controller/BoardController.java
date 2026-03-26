@@ -22,6 +22,7 @@ public class BoardController {
     @Autowired
     private final BoardService boardService;
 
+
     // 1. 리뷰 등록 (회원만 가능)
     // http://localhost:8080/board/rvwrite
     //  { "boardTitle" : "테스트제목", "boardContent" : "테스트내용", "logId" : 1 }
