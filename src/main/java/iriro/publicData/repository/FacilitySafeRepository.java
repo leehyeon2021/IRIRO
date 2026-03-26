@@ -15,7 +15,7 @@ public interface FacilitySafeRepository extends JpaRepository<FacilitySafeEntity
     List<FacilitySafeEntity> findByFacType( String facType );
 
     // 안전 테이블 범위 기준 조회
-    @Query( value = "select * from facility_safe r where r.latitude between :minLat and :maxLat and r.longitude between :minLng and :maxLng",
+    @Query( value = "select * from facility_safe r where r.fac_lat between :minLat and :maxLat and r.fac_lng between :minLng and :maxLng",
             nativeQuery = true)
     List<FacilitySafeEntity> findAllInBoundingBox(
             @Param("minLat") BigDecimal minLat, @Param("maxLat") BigDecimal maxLat,
