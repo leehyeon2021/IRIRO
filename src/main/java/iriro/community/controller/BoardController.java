@@ -43,7 +43,7 @@ public class BoardController {
         String loginEmail = null; // loginEmail 변수 선언
 
         // 만약에 토큰이 존재하고 Bearer로 시작할 때만 값을 꺼냄.  + 문자열.startsWith("시작문자")
-        if (token != null && !token.startsWith("Bearer")) {
+        if (token != null && token.startsWith("Bearer")) {
             String realToken = token.substring(7);
             loginEmail = jwtService.getClaim(realToken);
         }
