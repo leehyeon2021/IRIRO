@@ -131,7 +131,7 @@ public class FacilitySafeFetchService {
 
                     // x="0" 이면 지오코딩 (x없음y도없음)
                     if (xStr == null || xStr.equals("0")) {
-                        double[] coords = gs.getCoords(rnAdres, "F00");
+                        double[] coords = gs.getCoords(rnAdres);
                         if(coords == null)continue;
                         lat = coords[0];
                         lng = coords[1];
