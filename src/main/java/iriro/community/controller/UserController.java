@@ -16,7 +16,7 @@ public class UserController {
 
 
     @Autowired // 주방장을 불러오거라
-    private UserService userService;
+    private final UserService userService;
     private final JWTService jwtService; // * 토큰
 
     // 1. 회원가입 post = create = save
