@@ -34,70 +34,42 @@ public class TestSampleCode {
 
     // 3. 가상의 안전한 시설의 위치 테이블
     public static final List<SafetyFacPointDto> safeRoutePoint = List.of(
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3893500"), new BigDecimal("126.9593000")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3894200"), new BigDecimal("126.9590500")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3895600"), new BigDecimal("126.9588700")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3899200"), new BigDecimal("126.9586400")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3900900"), new BigDecimal("126.9585400")),
+            // ===== 경로 근처 안전시설 =====
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3894200"), new BigDecimal("126.9590500")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3895200"), new BigDecimal("126.9588700")),
+            new SafetyFacPointDto("안전벨", 1, new BigDecimal("37.3893000"), new BigDecimal("126.9591200")),
+            new SafetyFacPointDto("경찰서", 1, new BigDecimal("37.3896500"), new BigDecimal("126.9587000")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3902500"), new BigDecimal("126.9584500")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3904000"), new BigDecimal("126.9583600")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3905600"), new BigDecimal("126.9582700")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3907100"), new BigDecimal("126.9581900")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3908600"), new BigDecimal("126.9581100")),
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3909500"), new BigDecimal("126.9579800")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3910200"), new BigDecimal("126.9577600")),
+            new SafetyFacPointDto("안심지킴이집", 1, new BigDecimal("37.3908600"), new BigDecimal("126.9580500")),
+            new SafetyFacPointDto("경찰서", 1, new BigDecimal("37.3907000"), new BigDecimal("126.9579000")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3910000"), new BigDecimal("126.9580000")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3909800"), new BigDecimal("126.9578600")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3909700"), new BigDecimal("126.9578100")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3905500"), new BigDecimal("126.9566000")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3905000"), new BigDecimal("126.9565200")),
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3903300"), new BigDecimal("126.9560500")),
+            new SafetyFacPointDto("CCTV", 2, new BigDecimal("37.3902500"), new BigDecimal("126.9559000")),
+            new SafetyFacPointDto("안심지킴이집", 1, new BigDecimal("37.3900100"), new BigDecimal("126.9550100")),
+            new SafetyFacPointDto("안전벨", 1, new BigDecimal("37.3901200"), new BigDecimal("126.9552500")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3903300"), new BigDecimal("126.9560000")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3903000"), new BigDecimal("126.9559000")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3900100"), new BigDecimal("126.9550100")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3900000"), new BigDecimal("126.9549700")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3899600"), new BigDecimal("126.9548400")),
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3892200"), new BigDecimal("126.9525600")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3890500"), new BigDecimal("126.9524200")),
+            new SafetyFacPointDto("안전벨", 1, new BigDecimal("37.3890800"), new BigDecimal("126.9522600")),
+            new SafetyFacPointDto("안심지킴이집", 1, new BigDecimal("37.3890000"), new BigDecimal("126.9521500")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3897200"), new BigDecimal("126.9541300")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3897000"), new BigDecimal("126.9540800")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3892200"), new BigDecimal("126.9526600")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3891000"), new BigDecimal("126.9522900")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3890800"), new BigDecimal("126.9522600")),
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3886300"), new BigDecimal("126.9507600")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3887200"), new BigDecimal("126.9509200")),
+            new SafetyFacPointDto("경찰서", 1, new BigDecimal("37.3896800"), new BigDecimal("126.9494000")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3891000"), new BigDecimal("126.9502000")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3890500"), new BigDecimal("126.9522500")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3889500"), new BigDecimal("126.9519600")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3889500"), new BigDecimal("126.9518700")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3886100"), new BigDecimal("126.9508800")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3886300"), new BigDecimal("126.9507600")),
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.3922400"), new BigDecimal("126.9445300")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.3932700"), new BigDecimal("126.9405000")),
+            new SafetyFacPointDto("안심지킴이집", 1, new BigDecimal("37.3928000"), new BigDecimal("126.9425000")),
+            new SafetyFacPointDto("경찰서", 1, new BigDecimal("37.3935000"), new BigDecimal("126.9418000")),
 
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3890500"), new BigDecimal("126.9502300")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3891300"), new BigDecimal("126.9501100")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3893200"), new BigDecimal("126.9498600")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3896800"), new BigDecimal("126.9494000")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3900400"), new BigDecimal("126.9489400")),
-
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3896000"), new BigDecimal("126.9484400")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3895600"), new BigDecimal("126.9481600")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3899300"), new BigDecimal("126.9474200")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3900100"), new BigDecimal("126.9473300")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3904100"), new BigDecimal("126.9468200")),
-
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3913500"), new BigDecimal("126.9456300")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3920100"), new BigDecimal("126.9448200")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3922400"), new BigDecimal("126.9445300")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3919200"), new BigDecimal("126.9440700")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3921400"), new BigDecimal("126.9437800")),
-
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3921000"), new BigDecimal("126.9433600")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3919400"), new BigDecimal("126.9426300")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3922000"), new BigDecimal("126.9425200")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3919800"), new BigDecimal("126.9415400")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3922400"), new BigDecimal("126.9411900")),
-
-            new SafetyFacPointDto("보안등", new BigDecimal("37.3926400"), new BigDecimal("126.9409600")),
-            new SafetyFacPointDto("CCTV", new BigDecimal("37.3932700"), new BigDecimal("126.9405000")),
-            new SafetyFacPointDto("안심지킴이집", new BigDecimal("37.3937800"), new BigDecimal("126.9398800")),
-            new SafetyFacPointDto("경찰서", new BigDecimal("37.3942800"), new BigDecimal("126.9391200")),
-            new SafetyFacPointDto("안전벨", new BigDecimal("37.3944000"), new BigDecimal("126.9389600"))
+            // ===== bbox에서 걸러져야 할 먼 안전시설 =====
+            new SafetyFacPointDto("보안등", 2, new BigDecimal("37.4015000"), new BigDecimal("126.9715000")),
+            new SafetyFacPointDto("CCTV", 1, new BigDecimal("37.4060000"), new BigDecimal("126.9660000")),
+            new SafetyFacPointDto("안심지킴이집", 1, new BigDecimal("37.3815000"), new BigDecimal("126.9815000")),
+            new SafetyFacPointDto("경찰서", 1, new BigDecimal("37.4110000"), new BigDecimal("126.9410000")),
+            new SafetyFacPointDto("안전벨", 1, new BigDecimal("37.3695000"), new BigDecimal("126.9295000"))
     );
 }

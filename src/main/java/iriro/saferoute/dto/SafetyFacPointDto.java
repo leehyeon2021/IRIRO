@@ -9,9 +9,8 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor @NoArgsConstructor @Data @Builder
 public class SafetyFacPointDto {
-
     private String facType; // 안전시설물 타입
+    private int safeCount; // 안전 시설물 개수
     private BigDecimal latitude; // 위도
     private BigDecimal longitude; // 경도
-
 }

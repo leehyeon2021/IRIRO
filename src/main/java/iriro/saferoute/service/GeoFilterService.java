@@ -56,18 +56,15 @@ public class GeoFilterService {
         );
     }
 
-    // 위험 좌표 1개당 경로 좌표들 중 최소거리를 구하는 함수
-    public double getMinDistance(List<RoutePointDto> routePoints, RiskPointDto riskZone){
+    // 좌표 1개당 경로 좌표들 중 최소거리를 구하는 함수
+    public double getMinDistance(List<RoutePointDto> routePoints, double latitude, double longitude){
         double minDistance = Double.MAX_VALUE;
-
-        double riskLat = riskZone.getLatitude().doubleValue();
-        double riskLng = riskZone.getLongitude().doubleValue();
 
         for(RoutePointDto point : routePoints){
             double pointLat = point.getLatitude().doubleValue();
             double pointLng = point.getLongitude().doubleValue();
 
-            double distance = distanceMeter(pointLat, pointLng, riskLat, riskLng);
+            double distance = distanceMeter(pointLat, pointLng, latitude, longitude);
 
             minDistance = Math.min(minDistance, distance);
         }
