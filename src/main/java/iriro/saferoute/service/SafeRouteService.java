@@ -11,12 +11,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class SafeRouteService {
     private static final int MAX_DETOUR_DISTANCE_METER = 300; // 허용 가능한 우회 최대 거리
 
-    private final TmapRouteService tmapRouteService;
-    private final RiskPointFilterService riskPointFilterService;
+    private final TmapRouteService tmapRouteSvc;
+    private final RiskPointFilterService riskPointFilterSvc;
 
     //지금은 위험지역 샘플을 가져오지만 조회를 통해 가져옴 테스트 리스트 -> 추후에 삭제
     List<SafetyFacPointDto> safetyPoints = TestSampleCode.safeRoutePoint;
@@ -26,7 +25,7 @@ public class SafeRouteService {
     public SafeRouteResponseDto getSafeRoute(RouteRequestDto routeRequestDto){
 
         // (출발지 위/경도, 목적지 위/경도, 경로 배열, 총걸린 시간, 총 거리)를 반환
-        RouteResponseDto originRoute = tmapRouteService.getPedestrianRoute(routeRequestDto); // 경로 생성 API 1번 호출
+        RouteResponseDto originRoute = tmapRouteSvc.getPedestrianRoute(routeRequestDto); // 경로 생성 API 1번 호출
         List<RoutePointDto> routePoints = originRoute.getRoutePoints(); // 기존 안내 경로
         // 위험 지역을 DB에서 조사해 1차 필터링을 거친 값들만 리스트로 변환하여 가져옴. --> 추후 JPA활용하여 처리
 
@@ -41,7 +40,7 @@ public class SafeRouteService {
                         isInsideBbox(point.getLatitude().doubleValue(), point.getLongitude().doubleValue(),bbox))
                 .toList();
         // 위험 리스트 2,3차 필터링( 경로상 50m 이내, 연속된 위험지역 건너뛰기 )
-        List<RiskPointDto> filteredDangerPoints = riskPointFilterService.filterDangerPoints(routePoints, bboxDangerPoints); // 2,3차 필터 함수 적용
+        List<RiskPointDto> filteredDangerPoints = riskPointFilterSvc.filterDangerPoints(routePoints, bboxDangerPoints); // 2,3차 필터 함수 적용
 
         // 만약 필터링 된 위험리스트가 비어있으면 기존 경로 안전점수 계산 후 반환
         if(filteredDangerPoints.isEmpty()){
@@ -50,8 +49,8 @@ public class SafeRouteService {
         }
 
         // 우회 경유지 목록 생성 ( null이면 기본 경로 반환)
-        List<DetourWayPointDto> detourPoints = riskPointFilterService.getDetourWayPoints(routePoints, filteredDangerPoints);
-        RouteResponseDto detourRoute = tmapRouteService.getDetourRoute(routeRequestDto, detourPoints); // ++추가 TmapAPI 호출
+        List<DetourWayPointDto> detourPoints = riskPointFilterSvc.getDetourWayPoints(routePoints, filteredDangerPoints);
+        RouteResponseDto detourRoute = tmapRouteSvc.getDetourRoute(routeRequestDto, detourPoints); // ++추가 TmapAPI 호출
 
         System.out.println("우회 경유지 목록: " + Arrays.deepToString(detourPoints.toArray()));
         System.out.println("우회 경유지 크기: " + detourPoints.size() );
@@ -63,8 +62,8 @@ public class SafeRouteService {
         // 우회 경유지가 기존 경로보다 300m가 넓다면
         if(detourRoute.getTotalDistance() - originRoute.getTotalDistance() > MAX_DETOUR_DISTANCE_METER ){
             // 위험경로를 한 번만 우회하는 경로 생성
-            DetourWayPointDto singleWayPoint = riskPointFilterService.createSingleDetourWayPoint(routePoints, filteredDangerPoints.get(0) );
-            RouteResponseDto singleDetourRoute = tmapRouteService.getDetourRoute(routeRequestDto, detourPoints); // 싱글 우회경로 생성
+            DetourWayPointDto singleWayPoint = riskPointFilterSvc.createSingleDetourWayPoint(routePoints, filteredDangerPoints.get(0) );
+            RouteResponseDto singleDetourRoute = tmapRouteSvc.getDetourRoute(routeRequestDto, detourPoints); // 싱글 우회경로 생성
 
             // *** 안전점수 함수 추가해야함 ***
             return SafeRouteResponseDto.builder().detourRoute(singleDetourRoute).safety_score(90).build();
