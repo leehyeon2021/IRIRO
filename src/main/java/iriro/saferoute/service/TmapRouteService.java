@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.core.ParameterizedTypeReference;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +39,10 @@ public class TmapRouteService { //Tmap API 연결
     // 경유지 있는 경로 함수 만들기 (경유지 리스트 문자열 방식으로 변환)
     public RouteResponseDto getDetourRoute(RouteRequestDto routeRequestDto, List<DetourWayPointDto> detourList) {
         Map<String, Object> body = createBaseRequestBody(routeRequestDto);
-        body.put("passList", createPassList(detourList));
+        String passList = createPassList(detourList);
+        if (passList != null && !passList.isBlank()) {
+            body.put("passList", passList);
+        }
         Map<String, Object> response = requestTmapRoute(body);
         return buildRouteResponse(response, routeRequestDto);
     }
@@ -69,7 +71,7 @@ public class TmapRouteService { //Tmap API 연결
 
     // response 생성
     private Map<String, Object> requestTmapRoute(Map<String, Object> body){
-        Map<String, Object> response = webClient.post()
+        return webClient.post()
                 .uri(pedestrianUrl)
                 .header("appKey", appKey)
                 .header("Accept", "application/json")
@@ -78,7 +80,6 @@ public class TmapRouteService { //Tmap API 연결
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
-        return response;
     }
 
     // response에 대한 처리(원하는 값만 가져오기)
@@ -139,8 +140,8 @@ public class TmapRouteService { //Tmap API 연결
                     continue;
                 }
 
-                BigDecimal longitude = BigDecimal.valueOf(((Number) lonObj).doubleValue());
-                BigDecimal latitude = BigDecimal.valueOf(((Number) latObj).doubleValue());
+                double longitude = ((Number) lonObj).doubleValue();
+                double latitude = ((Number) latObj).doubleValue();
 
                 routePoints.add(new RoutePointDto(latitude, longitude, sequence++));
             }
@@ -148,10 +149,10 @@ public class TmapRouteService { //Tmap API 연결
         List<RoutePointDto> deduplicateRoutePoints = deduplicateRoutePoints(routePoints);
 
         return RouteResponseDto.builder()
-                .start_latitude(BigDecimal.valueOf(routeRequestDto.getStartLat()))
-                .start_longitude(BigDecimal.valueOf(routeRequestDto.getStartLng()))
-                .end_latitude(BigDecimal.valueOf(routeRequestDto.getEndLat()))
-                .end_longitude(BigDecimal.valueOf(routeRequestDto.getEndLng()))
+                .start_latitude(routeRequestDto.getStartLat())
+                .start_longitude(routeRequestDto.getStartLng())
+                .end_latitude(routeRequestDto.getEndLat())
+                .end_longitude(routeRequestDto.getEndLng())
                 .totalTime(totalTime)
                 .totalDistance(totalDistance)
                 .routePoints(deduplicateRoutePoints)

@@ -6,7 +6,6 @@ import iriro.saferoute.dto.RoutePointDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,13 +43,13 @@ public class DetourRouteService {
         RoutePointDto currPoint = routePoints.get(index);
         RoutePointDto prevPoint = routePoints.get(index-1);
 
-        double riskPointLat = riskPoint.getLatitude().doubleValue();
-        double riskPointLng = riskPoint.getLongitude().doubleValue();
+        double riskPointLat = riskPoint.getLatitude();
+        double riskPointLng = riskPoint.getLongitude();
 
-        double currLat = currPoint.getLatitude().doubleValue();
-        double currLng = currPoint.getLongitude().doubleValue();
-        double prevLat = prevPoint.getLatitude().doubleValue();
-        double prevLng = prevPoint.getLongitude().doubleValue();
+        double currLat = currPoint.getLatitude();
+        double currLng = currPoint.getLongitude();
+        double prevLat = prevPoint.getLatitude();
+        double prevLng = prevPoint.getLongitude();
 
         // 이전 위치와 현재 위치간의 변화량 구하기
         double dx = currLng - prevLng; // 경도 = Lng = X
@@ -89,13 +88,13 @@ public class DetourRouteService {
 
         if( leftDistance >= rightDistance){ // 왼쪽 후보 경유지가 오른쪽 후보 경유지보다 멀리 떨어져 있을 경우
             return new DetourWayPointDto(
-                    BigDecimal.valueOf(leftLat),
-                    BigDecimal.valueOf(leftLng)
+                    leftLat,
+                    leftLng
             );
         }else{
             return new DetourWayPointDto(
-                    BigDecimal.valueOf(rightLat),
-                    BigDecimal.valueOf(rightLng)
+                    rightLat,
+                    rightLng
             );
         }
     }

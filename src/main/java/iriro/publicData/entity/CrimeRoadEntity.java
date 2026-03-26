@@ -1,11 +1,14 @@
 package iriro.publicData.entity;
 
 import iriro.publicData.dto.CrimeRoadDto;
+import iriro.saferoute.dto.RiskPointDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity @Table(name = "crime_road")
 @NoArgsConstructor @AllArgsConstructor
@@ -37,5 +40,12 @@ public class CrimeRoadEntity {
                 .build();
     }
 
-
+    public RiskPointDto toRiskPointDto(){
+        return RiskPointDto.builder()
+                .riskCount(1) // 같은 도로명주소에 살고 있는 범죄자 수. default 1 , 추후에 변경
+                .roadType(criType)
+                .latitude(criLat)
+                .longitude(criLng)
+                .build();
+    }
 }
