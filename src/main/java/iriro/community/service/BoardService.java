@@ -9,6 +9,7 @@ import iriro.community.repository.BoardRepository;
 import iriro.community.repository.ReplyRepository;
 import iriro.community.repository.UserRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,9 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final ReplyRepository replyRepository;
+    private final BoardService boardService;
 
-    // 1. 리뷰 등록
+    // 1. 리뷰 등록 (회원)
     public boolean rvAdd( BoardDto boardDto , String email ) {
         // 1] dto --> entity 변환
         BoardEntity saveEntity = boardDto.toEntity();
@@ -74,15 +76,8 @@ public class BoardService {
         return entity.toDto(); // 엔티티 --> 디티오
     }
 
-    // 4. 리뷰 개별 삭제
-    public boolean rvDelete(Integer boardId){
-        try {
-            boardRepository.deleteById(boardId);
-            return true;
-        } catch (Exception e){
-            return false;
-        }
-    }
+    // 4. 리뷰 개별 삭제 (회원)
+    public boolean rvDelete(Integer boardId ,
 
     // 5. 글 추천
     public boolean ddabong(Integer boardId){
