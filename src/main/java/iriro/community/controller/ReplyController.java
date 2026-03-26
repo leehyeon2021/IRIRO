@@ -42,6 +42,5 @@ public class ReplyController {
             String loginEmail = (String)object;
             boolean result = replyService.rpDelete(replyId, loginEmail);
             return ResponseEntity.ok(result);
-
         }
     }
