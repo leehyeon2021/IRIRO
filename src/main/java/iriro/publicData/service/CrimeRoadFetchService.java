@@ -76,7 +76,7 @@ public class CrimeRoadFetchService{
                     String fullAdr = "서울특별시 "+item.get("sggNm")+" "+roadName;
                     System.out.println(fullAdr);
                     // 지오코딩 좌표 가져와서 넣기
-                    double[] coords = gs.getCoords(fullAdr, "F01");
+                    double[] coords = gs.getCoordsKakao(fullAdr);
                     if(coords==null){
                         System.out.println("좌표 저장 실패: "+fullAdr);
                         continue;
