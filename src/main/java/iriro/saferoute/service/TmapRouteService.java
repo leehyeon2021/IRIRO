@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,6 +64,8 @@ public class TmapRouteService { //Tmap API 연결
         }
 
         List<RoutePointDto> routePoints = new ArrayList<>();
+        Integer totalDistance = 0;
+        Integer totalTime = 0;
         int sequence = 1;
 
         // 4. features 순회
@@ -80,6 +79,14 @@ public class TmapRouteService { //Tmap API 연결
             Map<?, ?> geometry = (Map<?, ?>) geometryObj;
 
             Object typeObj = geometry.get("type");
+
+            // 총 걸린 시간, 총 거리 추출
+            Object propertyObj = feature.get("properties");
+            if(propertyObj == null) continue;
+            Map<?, ?> properties = (Map<?, ?>) propertyObj;
+
+            if(properties.get("totalTime") != null) totalTime = ((Number) properties.get("totalTime")).intValue();
+            if(properties.get("totalDistance") != null) totalDistance = ((Number) properties.get("totalDistance")).intValue();
 
             // 경로 좌표 추출
             if(!typeObj.equals("LineString")) continue;
@@ -106,13 +113,16 @@ public class TmapRouteService { //Tmap API 연결
                 routePoints.add(new RoutePointDto(latitude, longitude, sequence++));
             }
         }
+        List<RoutePointDto> deduplicateRoutePoints = deduplicateRoutePoints(routePoints);
 
         return RouteResponseDto.builder()
                 .start_latitude(BigDecimal.valueOf(routeRequestDto.getStartLat()))
                 .start_longitude(BigDecimal.valueOf(routeRequestDto.getStartLng()))
                 .end_latitude(BigDecimal.valueOf(routeRequestDto.getEndLat()))
                 .end_longitude(BigDecimal.valueOf(routeRequestDto.getEndLng()))
-                .routePoints(routePoints)
+                .totalTime(totalTime)
+                .totalDistance(totalDistance)
+                .routePoints(deduplicateRoutePoints)
                 .build();
     }
 
@@ -123,6 +133,8 @@ public class TmapRouteService { //Tmap API 연결
                 .limit(5)
                 .map(point -> point.getLongitude() + "," + point.getLatitude())
                 .collect(Collectors.joining("_"));
+
+        System.out.println("passList: " + passList); // 로그찍기 passList
 
         // 1. 요청 body 생성
         Map<String, Object> body = new HashMap<>();
@@ -209,6 +221,8 @@ public class TmapRouteService { //Tmap API 연결
             }
         }
 
+        List<RoutePointDto> deduplicateRoutePoints = deduplicateRoutePoints(routePoints);
+
         return RouteResponseDto.builder()
                 .start_latitude(BigDecimal.valueOf(routeRequestDto.getStartLat()))
                 .start_longitude(BigDecimal.valueOf(routeRequestDto.getStartLng()))
@@ -216,7 +230,22 @@ public class TmapRouteService { //Tmap API 연결
                 .end_longitude(BigDecimal.valueOf(routeRequestDto.getEndLng()))
                 .totalTime(totalTime)
                 .totalDistance(totalDistance)
-                .routePoints(routePoints)
+                .routePoints(deduplicateRoutePoints)
                 .build();
+    }
+
+    // 불필요한 연속된 중복된 경로를 제거하는 함수.
+    private List<RoutePointDto> deduplicateRoutePoints(List<RoutePointDto> routePoints){
+        List<RoutePointDto> DDRoutePoints = new ArrayList<>();
+        RoutePointDto prev = null;
+
+        for(RoutePointDto current : routePoints){
+            // 전 좌표가 null이거나 위,경도가 둘 중 하나라도 다르면 추가
+            if (prev == null || current.getLatitude().compareTo(prev.getLatitude()) != 0 || current.getLongitude().compareTo(prev.getLongitude()) != 0) {
+                DDRoutePoints.add(current);
+            }
+            prev = current;
+        }
+        return DDRoutePoints;
     }
 }
