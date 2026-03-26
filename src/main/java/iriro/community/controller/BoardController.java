@@ -21,8 +21,6 @@ public class BoardController {
 
     @Autowired
     private final BoardService boardService;
-    private final BoardRepository boardRepository;
-    private final BoardEntity boardEntity;
 
     // 1. 리뷰 등록 (회원)
     // http://localhost:8080/board/rbwrite
@@ -54,7 +52,7 @@ public class BoardController {
     }
 
     // 4. 리뷰 개별 삭제 (회원)
-    // http://localhost:8080/board/rvdelete?boardId=2
+    // http://localhost:8080/board/rvdelete?boardId=11
     @DeleteMapping("/rvdelete")
     public ResponseEntity<?> rvDelete(@RequestParam Integer boardId , HttpSession session){
         Object object = session.getAttribute("email");
