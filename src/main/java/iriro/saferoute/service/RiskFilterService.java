@@ -4,7 +4,6 @@ import iriro.saferoute.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,15 +14,9 @@ public class RiskFilterService {
 
     private final GeoFilterService geoFilterSvc;
 
-    // 위험지역 필터링 함수(1,2,3차)
-    public List<RiskPointDto> filterDangerPoints( List<RoutePointDto> routePoints, List<RiskPointDto> allDangerPoints ){
+    // 위험지역 필터링 함수(2,3차)
+    public List<RiskPointDto> filterDangerPoints( List<RoutePointDto> routePoints, List<RiskPointDto> inDangerPoints ){
         // 해당 객체 내에 있는 시작점과 끝점의 위/경도를 가지고 위험구역 boundingbox를 만듬
-        BboxDto bbox = geoFilterSvc.createBox( routePoints );
-
-        // 위험 리스트 1차 필터링
-        List<RiskPointDto> inDangerPoints = allDangerPoints.stream().filter(point ->
-                        geoFilterSvc.isInsideBbox(point.getLatitude().doubleValue(), point.getLongitude().doubleValue(), bbox))
-                .toList();
 
         // [2차 필터] : 1차 필터링된 위험 위치 리스트를 경로 50m 안에 들어오는 위험 위치들만 필터링, 길의 타입에 따라 다르게 필터링.
         List<RiskPointDto> secondDangerPoints = inDangerPoints.stream().filter(point ->
