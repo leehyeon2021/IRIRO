@@ -78,7 +78,10 @@ public class CrimeRoadFetchService{
                     System.out.println(fullAdr);
                     // 지오코딩 좌표 가져와서 넣기
                     double[] coords = gs.getCoords(fullAdr);
-                    if(coords==null)continue; // 오류 무서워서 그냥 넣음
+                    if(coords==null){
+                        System.out.println("좌표 저장 실패: "+fullAdr);
+                        continue;
+                    }
 
                     // 저장
                     cr.save(CrimeRoadEntity.builder()
