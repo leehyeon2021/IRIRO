@@ -29,7 +29,7 @@ public class FacilitySafeEntity {
     private Integer facCount;
     @Column(name = "fac_use", length = 10)
     private String facUse;
-    @Column(name = "fac_tel", length = 30)
+    @Column(name = "fac_tel", length = 50)
     private String facTel;
 
     public FacilitySafeDto toDto(){

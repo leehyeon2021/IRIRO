@@ -12,24 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api") //공통 주소 입력
 public class SafeRouteController {
 
-    // 테스트용 일반 경로 반환 확인
-    private final TmapRouteService tmapRouteService;
-    private final SafeRouteService safeRouteService;
+    private final SafeRouteService safeRouteSvc;
 
     // 안전 경로 반환
-
-    // 안전 경로 로그 저장
-
-    // 일반 경로 반환(test)
-    @PostMapping("/tmaptest")
-    public ResponseEntity<?> test(@RequestBody RouteRequestDto routeRequestDto){
-        return ResponseEntity.ok(tmapRouteService.getPedestrianRoute(routeRequestDto));
-    }
-
-    // 경유지 경로 반환(test2)
-    @PostMapping("/tmaptest2")
+    @PostMapping("/saferoute")
     public ResponseEntity<?> test2(@RequestBody RouteRequestDto routeRequestDto){
-        return ResponseEntity.ok( safeRouteService.getSafeRoute(routeRequestDto) );
+        return ResponseEntity.ok( safeRouteSvc.getSafeRoute(routeRequestDto) );
     }
 
 }
