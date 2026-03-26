@@ -35,6 +35,12 @@ public class FacilitySafeFetchService {
         int numOfRows = 500;
         int totalCount = 0;
         int totalPages = 1;     // numOfRows와 totalCount를 고려하여 페이지 넘김
+
+        // 기존 데이터
+        List<FacilitySafeEntity> oldList = fr.findByFacType("안심지킴이집");
+        // 삭제 비교 위한 저장소
+        Set<String> deleteCheck = new HashSet<>();
+
         try{ // 전체 개수 찾기
             for(int page=1;page<=totalPages;page++){
                 // 서비스키 주소에 넣기
@@ -65,16 +71,48 @@ public class FacilitySafeFetchService {
                 // item 저장(List임)
                 List<Map<String,Object>> itemList = (List<Map<String, Object>>) body.get("items");
                 for(Map<String,Object>item:itemList){
-                    fr.save(FacilitySafeEntity.builder()
-                            .facType("안심지킴이집")
-                            .facSgg((String) item.get("signguNm"))
-                            .facName((String) item.get("storNm"))
-                            .facAdd((String) item.get("rdnmadr"))
-                            .facLat(Double.parseDouble((String) item.get("latitude")))
-                            .facLng(Double.parseDouble((String) item.get("longitude")))
-                            .facUse((String) item.get("useYn"))
-                            .facTel((String) item.get("phoneNumber"))
-                            .build());
+
+                    // 수정 저장 용도
+                    String facName = ((String) item.get("facName"));
+                    String facAdd = ((String) item.get("facName"));
+                    String facSgg = (String) item.get("signguNm");
+                    String facUse = (String) item.get("useYn");
+                    String facTel = (String) item.get("phoneNumber");
+                    double lat = Double.parseDouble((String) item.get("latitude"));
+                    double lng = Double.parseDouble((String) item.get("longitude"));
+
+                    // 비교 위한 저장
+                    deleteCheck.add(facName.trim()+facAdd.trim());
+
+                    // DB에 있나요
+                    Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd( facName, facAdd );
+                    if(exists.isPresent()){
+                        FacilitySafeEntity exist = exists.get();
+                        exist.setFacUse(facUse);
+                        exist.setFacTel(facTel);
+                        exist.setFacSgg(facSgg);
+                        exist.setFacLat(lat);
+                        exist.setFacLng(lng);
+                    }else {
+                        fr.save(FacilitySafeEntity.builder()
+                                .facType("안심지킴이집")
+                                .facSgg(facSgg)
+                                .facName(facName)
+                                .facAdd(facAdd)
+                                .facLat(lat)
+                                .facLng(lng)
+                                .facUse(facUse)
+                                .facTel(facTel)
+                                .build());
+                    }
+                }
+            }
+            // 업데이트된 데이터에 없는 기존 데이터 삭제
+            for(FacilitySafeEntity db : oldList){
+                String dbNameAdd = db.getFacName().trim() + db.getFacAdd().trim();
+                if(!deleteCheck.contains(dbNameAdd)){
+                    System.out.println("중복 삭제: "+db + " " + dbNameAdd);
+                    fr.delete(db);
                 }
             }
            return true;
@@ -159,15 +197,13 @@ public class FacilitySafeFetchService {
 
                     // DB에 있나요
                     Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd(facName , facAdd);
-                    if(exists.isPresent()){
+                    if(exists.isPresent()){         // 네
                         FacilitySafeEntity exist = exists.get();
                         exist.setFacTel(facTel);
-                        exist.setFacAdd(facAdd);
-                        exist.setFacName(facName);
                         exist.setFacSgg(facSgg);
                         exist.setFacLat(lat);
                         exist.setFacLng(lng);
-                    }else {
+                    }else {                         // 아니요
                         fr.save(FacilitySafeEntity.builder()
                                 .facType("경찰서")
                                 .facSgg(facSgg)
@@ -189,10 +225,7 @@ public class FacilitySafeFetchService {
                 }
             }
             return true;
-        } catch (Exception e) {
-            System.out.println("경찰서 저장 실패: " + e);
-            return false;
-        }
+        }catch(Exception e){System.out.println("경찰서 저장 실패: " + e);return false;}
     }
 
     // 안전시설물(보안등,CCTV,안전벨) 저장 (8100여 개)
@@ -206,6 +239,11 @@ public class FacilitySafeFetchService {
         typeMapping.put("301","안전벨");
         typeMapping.put("302","CCTV");
         typeMapping.put("305","보안등");
+
+        // DB 저장된 시설물 데이터 가져오기 (비교용)
+        List<FacilitySafeEntity> oldList = fr.findByFacTypeIn(Arrays.asList("안전벨", "CCTV", "보안등"));
+        // 삭제 비교 위한 저장소
+        Set<String> deleteCheck = new HashSet<>();
 
         try{
             for(int page = 1 ; page <=totalPages; page++){
@@ -230,20 +268,24 @@ public class FacilitySafeFetchService {
                 // 열기
                 Map<String,Object> tbSafeReturnItem = (Map<String,Object>) response.get("tbSafeReturnItem");
 
-                // totalCount(list_total_count)
+                // totalCount('list_total_count')
                 if(page==1){
                     totalCount = (int) tbSafeReturnItem.get("list_total_count");
                     System.out.println("totalCount: "+totalCount);
                     totalPages=(totalCount+numOfRows-1)/numOfRows;
                 }
 
-                // row 저장(List임)
+                // 더 열어 ('row')
                 List<Map<String,Object>> itemList = (List<Map<String, Object>>) tbSafeReturnItem.get("row");
+
+                // 저장
                 for(Map<String,Object> item : itemList){
+
                     // 시설 코드 꺼내기
                     String faciCode = (String) item.get("FACI_CODE");
                     if(!typeMapping.containsKey(faciCode))continue;
-                    // 좌표("POINT_WKT":"POINT (126.968590563668 37.5793826677127)") 나누어 넣기
+
+                    // 좌표 ("POINT_WKT":"POINT (위도 경도)")
                     String pointWkt = (String) item.get("POINT_WKT");
                     if(pointWkt == null || pointWkt.isEmpty()) continue;
                         // 숫자, 마침표, 공백 빼고 모두 제거([이거중하나]^제외0-9모든숫자.마침표랑공백)
@@ -257,7 +299,8 @@ public class FacilitySafeFetchService {
                     String instlCnt = (String) item.get("INSTL_CNT");
                     Integer instlcut = instlCnt!=null&&!instlCnt.isEmpty() ? Integer.parseInt(instlCnt) : null;
 
-                    // 드디어 저장
+                    // DB에 있나요
+
                     fr.save(FacilitySafeEntity.builder()
                             .facType((String)typeMapping.get(faciCode))          // 안전벨/CCTV/보안등
                             .facSgg((String)item.get("SGG_NAME"))
