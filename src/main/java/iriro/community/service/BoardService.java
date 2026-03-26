@@ -4,6 +4,7 @@ package iriro.community.service;
 
 import iriro.community.dto.BoardDto;
 import iriro.community.entity.BoardEntity;
+import iriro.community.entity.UserEntity;
 import iriro.community.repository.BoardRepository;
 import iriro.community.repository.ReplyRepository;
 import iriro.community.repository.UserRepository;
@@ -29,14 +30,24 @@ public class BoardService {
     private final ReplyRepository replyRepository;
 
     // 1. 리뷰 등록
-    public boolean rvAdd( BoardDto boardDto ){
+    public boolean rvAdd( BoardDto boardDto , String email ) {
         // 1] dto --> entity 변환
-        BoardEntity boardEntity = boardDto.toEntity();
-        // 2] JPA save 이용하여 insert 하기
-        BoardEntity saved = boardRepository.save( boardEntity );
-        // 3] save 결과에 pk 여부 성공판단
-        if( saved.getBoardId() >= 1 ) return true;
-        return false;
+        BoardEntity saveEntity = boardDto.toEntity();
+        // ********* 저장하기 전에 FK 대입하기 , FK의 엔티티를 찾아서 대입 ***********
+        // 현재 로그인 중인 email로 엔티티 찾기
+        Optional<UserEntity> entityOptional = userRepository.findByEmail(email);
+        if (!entityOptional.isPresent()) { // !부정문 , isPresent() 아니면
+            return false; // 존재하지 않은 회원으로 실패
+        }
+        // 저장할 게시물 엔티티에 set 참조 엔티티(회원엔티티);
+        saveEntity.setUserEntity(entityOptional.get());
+
+        BoardEntity savedEntity = boardRepository.save(saveEntity); // 2] entity 저장한다.
+        if (savedEntity.getBoardId() > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // 2. 리뷰 전체 조회
