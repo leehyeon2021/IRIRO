@@ -5,6 +5,8 @@ import iriro.community.dto.BoardDto;
 import iriro.community.entity.BoardEntity;
 import iriro.community.repository.BoardRepository;
 import iriro.community.service.BoardService;
+import iriro.community.service.JWTService;
+import iriro.community.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +23,27 @@ public class BoardController {
 
     @Autowired
     private final BoardService boardService;
+    private final JWTService jwtService;
+
 
 
     // 1. 리뷰 등록 (회원만 가능)
     // http://localhost:8080/board/rvwrite
     //  { "boardTitle" : "테스트제목", "boardContent" : "테스트내용", "logId" : 1 }
     @PostMapping("/rvwrite")
-    public ResponseEntity<?> rbAdd(@RequestBody BoardDto boardDto , HttpSession session){
-        // 1) 세션 내 로그인 정보 확인하기
-        Object object = session.getAttribute("email");
-        if(object == null){ return ResponseEntity.ok(false);} // 만약에 비로그인이면 실패
-        // 2) 로그인 중이면
-        String loginEmail = (String)object;
-        // 3) 서비스에게 입력받은 값과 세션에 저장된 값 전달한다.
+    public ResponseEntity<?> rbAdd(@RequestBody BoardDto boardDto ,
+                                   @RequestHeader("Authorization")String token){
+        // 만약에 토큰이 없거나 Bearer 시작하지 않으면 문자열.startsWith("시작문자")
+        // : 문자열내 시작문자가 존재하면 true
+        if(token == null || !token.startsWith("Bearer")){
+            return ResponseEntity.ok(false); // 비로그인이라 글쓰기 실패.
+        }
+        // 토큰만 추출
+        token = token.replace("Bearer ","");
+        // 토큰에서 값 꺼내기
+        String loginEmail = jwtService.getClaim(token);
+        if(loginEmail == null){return ResponseEntity.ok(false);}
+        // 서비스에게 입력받은 값과 세션에 저장된 값 전달.
         boolean result = boardService.rvAdd(boardDto,loginEmail);
         return ResponseEntity.ok(result);
     }
