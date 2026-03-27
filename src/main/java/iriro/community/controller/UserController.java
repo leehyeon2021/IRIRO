@@ -1,13 +1,17 @@
 package iriro.community.controller;
 
+import iriro.community.dto.BoardDto;
 import iriro.community.dto.UserDto;
 import iriro.community.service.JWTService;
 import iriro.community.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,4 +60,14 @@ public class UserController {
         // 서버는 할 게 없지만 프론트에게 지워도 된다고 신호를 줌...
         return ResponseEntity.ok(true);
     }
+
+    // 4. 내가 쓴 글 조회
+    // http://localhost:8080/user/myrv
+    @GetMapping("/myrv")
+    public List<BoardDto> myrv(@RequestParam Integer userId , HttpServletRequest request) {
+    String token = request.getHeader("Authorization");
+    String loginEmail = jwtService.getClaim(token);
+    return userService.myrv(userId,loginEmail);
+    }
+
 }
