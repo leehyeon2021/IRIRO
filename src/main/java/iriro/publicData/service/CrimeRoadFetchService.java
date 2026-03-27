@@ -32,8 +32,10 @@ public class CrimeRoadFetchService{
         int totalCount = 0;     // 저장해야 함
         int totalPages = 1;     // numOfRows와 totalCount를 고려하여 페이지 넘김
 
-        try {
+        // 중복 체크용 Set<String>
+        Set<String> list = new HashSet<>();
 
+        try {
             // totalCount을 찾아라 하나둘셋 으아악
             for (int page = 1; page <= totalPages; page++) {
 
@@ -67,9 +69,6 @@ public class CrimeRoadFetchService{
                 // 더 열어
                 Map<String, Object> items = (Map<String, Object>) body.get("items");
                 List<Map<String, Object>> itemList = (List<Map<String, Object>>) items.get("item");
-
-                // 중복 체크용 Set<String>
-                Set<String> list = new HashSet<>();
 
                 // 저장
                 for (Map<String, Object> item : itemList) {
