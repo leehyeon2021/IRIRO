@@ -87,7 +87,7 @@ public class CrimeRoadFetchService{
                     // 삭제 비교 위한 저장
                     deleteCheck.add(it);
 
-                    // criCount 이미 있는 도로명은 +1 continue;
+                    // cri_count 추가
                     if(!count.add(it)){ // Set은 중복이면 저장x false 반환
                         Optional<CrimeRoadEntity> lists = cr.findByCriSggAndCriRoad(sggNm, ctpvNm);
                         lists.ifPresent( list -> list.setCriCount(list.getCriCount()+1));
