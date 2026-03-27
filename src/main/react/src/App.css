@@ -205,3 +205,35 @@
 
 .btn-cancel { background-color: #e0e0e0; color: #333; }
 .btn-confirm { background-color: #ff4444; color: white; }
+
+
+
+/* ⭐ 위로 튀어나오는 팝업 메뉴 디자인 */
+.menu-popup {
+  position: absolute;
+  bottom: 70px; /* 기존 메뉴 버튼 바로 위에 뜨도록 위치 잡기 */
+  left: 0;
+  background-color: white;
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 60px;
+  animation: popUp 0.3s ease-out; /* 스르륵 나타나는 애니메이션 */
+}
+
+.btn-menu-item {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* 팝업 애니메이션 */
+@keyframes popUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
