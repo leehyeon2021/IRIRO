@@ -36,7 +36,7 @@ function App() {
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: 1
+          zIndex: 10
         }}
       />
       {/* 지도 위에 덮는 커스텀 UI */}
@@ -47,7 +47,8 @@ function App() {
               left: 0,
               width: '100%',
               height: '100%',
-              zIndex: 10
+              zIndex: 10,
+              pointerEvents: 'none'
             }}
           >
 
