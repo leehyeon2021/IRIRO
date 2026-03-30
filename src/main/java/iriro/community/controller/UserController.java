@@ -63,8 +63,16 @@ public class UserController {
 
 
     // 4. 마이페이지
-    @GetMapping("/myinfo/{email}")
-    // http://localhost:8080/user/myinfo/
-    public UserDto myInfo(@PathVariable String email){return userService.myInfo(email);}
+    @GetMapping("/myinfo/")
+    // http://localhost:8080/user/myinfo
+    public ResponseEntity<?> myInfo(@RequestHeader("Authorization") String token){
+        if(token == null || !token.startsWith("Bearer")){
+            return ResponseEntity.ok(false);
+        }
+        token = token.replace("Bearer ","");
+        String email = jwtService.getClaim(token);
+        if(email == null)return ResponseEntity.ok(false);
+        return ResponseEntity.ok(userService.myInfo(email));
 
+        }
 }

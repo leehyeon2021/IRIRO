@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserService {
 
 
@@ -60,20 +59,15 @@ public class UserService {
     }
 
     // 마이페이지
-    public UserDto myInfo(String email) {
-        UserEntity user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 아이디가 존재하지 않습니다."));
+    @Transactional
+    public ResponseEntity<?> myInfo(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email).orElse(null);
 
-        return UserDto.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickName(user.getNickname())
-
-                .myBoards(user.getBoardList().stream()
-                        .map(BoardEntity::toDto).collect(Collectors.toList()))
-
-                .myReplies(user.getReplyList().stream()
-                        .map(ReplyEntity::toDto).collect(Collectors.toList()))
-                .build();
+        if(userEntity == null){
+            return ResponseEntity.status(404).body("해당 유저를 찾을 수 없습니다.");
+        }
+        UserDto userDto = userEntity.toDto();
+        return ResponseEntity.ok(userDto);
     }
 
 }
