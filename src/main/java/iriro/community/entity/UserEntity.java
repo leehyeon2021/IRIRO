@@ -40,7 +40,7 @@ public class UserEntity extends BaseTime {
     private List<BoardEntity> boardList = new ArrayList<>();
 
     // 유저 1명에는 여러 개의 리플이 포함된다.
-    @OneToMany(mappedBy = "userENtity",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "userEntity",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     @ToString.Exclude
     private List<ReplyEntity> replyList = new ArrayList<>();
