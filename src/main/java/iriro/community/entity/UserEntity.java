@@ -3,11 +3,9 @@ package iriro.community.entity;
 import iriro.common.entity.BaseTime;
 import iriro.community.dto.UserDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -32,6 +30,14 @@ public class UserEntity extends BaseTime {
 
     @Column( nullable = false , length = 40 , unique = true )
     private String nickname;
+
+
+    // 1:N 일대다
+        // 유저 1명에는 여러 개의 보드가 포함된다.
+    @OneToMany(mappedBy = "userEntity",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    @ToString.Exclude
+    private List<BoardEntity> boardList = new ArrayList<>();
 
 
     // Entity --> Dto 변환함수 // 생고기에서 플레이팅 접시용으로 바꾸는 거야~
