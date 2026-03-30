@@ -1,10 +1,4 @@
-<<<<<<<< HEAD:src/main/react/src/App.js
-App.js
-
-import React, { useEffect, useRef, useState } from 'react';
-========
 import React, { useState } from 'react';
->>>>>>>> origin/강병모:src/main/react/src/App.jsx
 import './App.css';
 import myLocationImg from './assets/my_location_marker.png';
 import MapPage from './MapPage';
@@ -18,23 +12,7 @@ function App() {
 
   return (
     <div className="app-container">
-<<<<<<<< HEAD:src/main/react/src/App.js
-
-      {/* 진짜 지도 */}
-      <div
-        ref={mapRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 10
-        }}
-      />
-========
         <MapPage />
->>>>>>>> origin/강병모:src/main/react/src/App.jsx
       {/* 지도 위에 덮는 커스텀 UI */}
           <div
             style={{
