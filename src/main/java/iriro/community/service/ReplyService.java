@@ -46,16 +46,15 @@ public class ReplyService {
 
     // 2. 댓글 삭제
     public boolean rpDelete(Integer replyId , String loginEmail){
-    Optional<ReplyEntity> replyOptional = replyRepository.findById(replyId);
-    if(replyOptional.isPresent()){
-        ReplyEntity reply = replyOptional.get();
-        if(     reply.getUserEntity() != null && // .getUserEntity()가 null일 수도 있으니까ㅣ
-                reply.getUserEntity().getEmail().equals(loginEmail)){
-            replyRepository.deleteById(replyId);
-            return true;
+        ReplyEntity reply = replyRepository.findById(replyId).orElse(null);
+        if(reply == null)return false;
+
+        if(reply.getUserEntity() == null || !reply.getUserEntity().getEmail().equals(loginEmail)){
+            return false;
         }
-    }
-    return false;
+
+        replyRepository.deleteById(replyId);
+        return true;
     }
 
 
