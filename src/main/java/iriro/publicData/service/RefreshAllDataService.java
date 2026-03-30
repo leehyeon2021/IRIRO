@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class RefreshAllDataService {
 
 // 저장/조회 클래스 분리했으므로 아래 수정 필요

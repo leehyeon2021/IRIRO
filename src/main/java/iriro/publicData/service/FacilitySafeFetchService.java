@@ -14,7 +14,6 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class FacilitySafeFetchService {
 
     // 안심지킴이집
@@ -34,6 +33,7 @@ public class FacilitySafeFetchService {
     private final GeocodingService gs;
 
     // 안심지킴이집(List) 저장 (700여 개)
+    @Transactional
     public boolean fetchSafeHouse(){
         int numOfRows = 500;
         int totalCount = 0;
@@ -127,7 +127,8 @@ public class FacilitySafeFetchService {
         }catch(Exception e){System.out.println("안심지킴이집 저장 실패: "+e);return false;}
     }
 
-    // 경찰서 저장 (3000여 개 중 서울은 400여 개) - 동기화 async
+    // 경찰서 저장 (3000여 개 중 서울은 400여 개)
+    @Transactional
     public boolean fetchPoliceStation() {
         int numOfRows = 100;
         int totalCount = 0;
@@ -238,6 +239,7 @@ public class FacilitySafeFetchService {
     }
 
     // 안전시설물(보안등,CCTV,안전벨) 저장 (8100여 개)
+    @Transactional
     public boolean fetchSafeFac(){
         int numOfRows = 500;
         int totalCount = 0;

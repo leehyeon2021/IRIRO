@@ -11,7 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
 
-@Service @RequiredArgsConstructor @Transactional
+@Service
+@RequiredArgsConstructor
 public class CrimeRoadFetchService{
 
     @Value("${api.pub.service-key}")
@@ -25,6 +26,7 @@ public class CrimeRoadFetchService{
     private final GeocodingService gs;
 
     // 위험도로명(Map) 저장
+    @Transactional
     public boolean fetchCrimeRoad(){
         int numOfRows = 1000;   // 한 번에 1000개 조회 가능
         int totalCount = 0;     // 저장해야 함
