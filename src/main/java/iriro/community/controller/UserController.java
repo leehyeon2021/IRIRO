@@ -64,6 +64,7 @@ public class UserController {
 
     // 4. 마이페이지
     @GetMapping("/myinfo")
-    public ResponseEntity<?> myInfo(@PathVariable String email){return userService.myInfo(email);}
+    // http://localhost:8080/user/myinfo/
+    public UserDto myInfo(@PathVariable String email){return userService.myInfo(email);}
 
 }
