@@ -6,8 +6,10 @@ import iriro.community.entity.BoardEntity;
 import iriro.community.entity.UserEntity;
 import iriro.community.repository.BoardRepository;
 import iriro.community.repository.UserRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +55,15 @@ public class UserService {
         // 3] 없으면 로그인 실패(아이디 없을 때)
         return false;
 
+    }
+
+    // 유저 정보 조회
+    public ResponseEntity<?> myInfo(String email){
+        UserEntity entity = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 아이디가 존재하지 않습니다."));
+        return entity.toDto();
+
+
+        }
     }
 
 
