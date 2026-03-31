@@ -14,6 +14,7 @@ public class ReplyDto {
     private Integer replyId; // 댓글번호
     private Integer userId; // 회원번호
     private Integer boardId; // 글 번호
+    private String nickname; // 닉네임
     private String replyContent; // 내용
     private String createdAt;
     private String updatedAt;
