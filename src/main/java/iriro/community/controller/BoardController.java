@@ -38,21 +38,20 @@ public class BoardController {
     //  { "boardTitle" : "테스트제목", "boardContent" : "테스트내용", "logId" : 1 }
     @PostMapping("/rvwrite")
     public ResponseEntity<?> rbAdd(@RequestBody BoardDto boardDto ,
-                                   @RequestHeader("Authorization")String token) {
+                                   @RequestHeader(value = "Authorization",required = false)String token) {
 
-        String loginEmail = null; // loginEmail 변수 선언
 
         // 만약에 토큰이 존재하고 Bearer로 시작할 때만 값을 꺼냄.  + 문자열.startsWith("시작문자")
-        if (token != null && token.startsWith("Bearer")) {
-            String realToken = token.substring(7);
-            loginEmail = jwtService.getClaim(realToken);
-        }
-        if (loginEmail == null){
-            System.out.println("로그인 정보 없음 : 리뷰 등록 실패");
+        if (token == null || !token.startsWith("Bearer ")) {
             return ResponseEntity.ok(false);
         }
+        String realToken = token.replace("Bearer ","");
+        String loginEmail = jwtService.getClaim(realToken);
+        if(loginEmail==null){
+            return ResponseEntity.status(401).body("로그인이 만료되었습니다.");
+        }
         boolean result = boardService.rvAdd(boardDto,loginEmail);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok("리뷰가 등록되었습니다");
         }
 
     // 2. 리뷰 전체 조회
@@ -69,11 +68,11 @@ public class BoardController {
         return boardService.rvView(boardId);
     }
 
-    // 4. 리뷰 개별 수정
-    @PutMapping("/detail/{boardId}")
-    public ResponseEntity<?> rvUpdate(@PathVariable Integer boardId, @RequestBody BoardDto boardDto,HttpServletRequest request){
-        return ResponseEntity.ok(boardService.rvUpdate(boardId,request));
-    }
+//    // 4. 리뷰 개별 수정
+//    @PutMapping("/detail/{boardId}")
+//    public ResponseEntity<?> rvUpdate(@PathVariable Integer boardId, @RequestBody BoardDto boardDto,HttpServletRequest request){
+//        return ResponseEntity.ok(boardService.rvUpdate(boardId,request));
+//    }
 
     // 5. 리뷰 개별 삭제 (회원)
     // http://localhost:8080/board/rvdelete?boardId=11
