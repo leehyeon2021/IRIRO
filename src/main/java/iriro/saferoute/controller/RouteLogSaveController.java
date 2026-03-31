@@ -14,7 +14,7 @@ public class RouteLogSaveController {
     private final RouteLogSaveService routeLogSaveSvc;
 
     // 후기 저장
-    @PostMapping("/savelog")
+    @PostMapping("/saverating")
     public ResponseEntity<?> saveLog(@RequestParam Long logId, @RequestParam Integer rating){
         return ResponseEntity.ok( routeLogSaveSvc.updateLogRating(logId, rating));
     }

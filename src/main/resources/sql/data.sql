@@ -26,7 +26,7 @@ INSERT INTO crime_road (cri_zip, cri_sgg, cri_road, cri_lat, cri_lng, cri_type) 
 
 -- [3] users
 INSERT INTO users (user_id, email, pw_token, nickname, created_at, updated_at) VALUES
-(1, 'worker@gmail.com', '$2a$10$hash1', '프로야근러', '2026-02-10 18:30:00', '2026-03-01 22:10:00'),
+(1, 'test@gmail.com', '$2a$10$hash1', '비회원', '2001-01-01 01:01:01', '2001-01-01 01:01:01'),
 (2, 'dogwalker@naver.com', '$2a$10$hash2', '초코맘_산책중', '2026-02-11 09:15:00', '2026-02-11 09:15:00'),
 (3, 'sheriff@daum.net', '$2a$10$hash3', '동네보안관', '2026-02-15 14:20:00', '2026-03-10 10:05:00'),
 (4, 'student@gmail.com', '$2a$10$hash4', '도서관지박령', '2026-02-18 23:40:00', '2026-02-18 23:40:00'),
