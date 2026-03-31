@@ -12,4 +12,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ArticleService {
     private final ArticleRepository ar;
+
+//    public List<ArticleDto> getArticleFindAll(){
+//        return
+//    }
 }
