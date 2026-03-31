@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Entity
@@ -54,6 +55,8 @@ public class UserEntity extends BaseTime {
                 .email(this.email)
                 // 비밀번호는 소중하니까 불포함한다.
                 .nickName(this.nickname)
+                .myBoards(this.boardList.stream().map(BoardEntity::toDto).collect(Collectors.toList()))
+                .myReplies(this.replyList.stream().map(ReplyEntity::toDto).collect(Collectors.toList()))
                 .createAt( this.getCreatedAt().toString())
                 .updateAt( this.getUpdatedAt().toString())
                 .build();
