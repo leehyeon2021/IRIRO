@@ -75,10 +75,9 @@ public class BoardService {
 
 
     // 5. 리뷰 개별 삭제 (회원)
-    public void rvDelete(Integer boardId,String loginEmail) {
-        BoardEntity board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰가 존재하지 않습니다."));
-        if(board.getUserEntity()==null||!board.getUserEntity().getEmail().equals(loginEmail))
+    public boolean rvDelete(Integer boardId,String loginEmail) {
+     BoardEntity entity = boardRepository.findById(boardId).orElse(null);
+     if(board == null){return false;}
     }
 
 

@@ -3,11 +3,9 @@ package iriro.community.entity;
 import iriro.common.entity.BaseTime;
 import iriro.community.dto.UserDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -43,7 +41,6 @@ public class UserEntity extends BaseTime {
 
     // 댓글
     @OneToMany(mappedBy = "")
-    @JoinColumn( name = "reply_id")
     private List<ReplyEntity> replies;
 
 
