@@ -64,12 +64,18 @@ public class BoardController {
 
     // 3. 리뷰 상세 조회
     // http://localhost:8080/board/all/detail?boardId=1
-    @GetMapping("/all/detail")
+    @GetMapping("/detail")
     public BoardDto rvView(@RequestParam Integer boardId){
         return boardService.rvView(boardId);
     }
 
-    // 4. 리뷰 개별 삭제 (회원)
+    // 4. 리뷰 개별 수정
+    @PutMapping("/detail/{boardId}")
+    public ResponseEntity<?> rvUpdate(@PathVariable Integer boardId, @RequestBody BoardDto boardDto,HttpServletRequest request){
+        return ResponseEntity.ok(boardService.rvUpdate(boardId,request));
+    }
+
+    // 5. 리뷰 개별 삭제 (회원)
     // http://localhost:8080/board/rvdelete?boardId=11
     @DeleteMapping("/rvdelete")
     @Transactional
@@ -85,8 +91,9 @@ public class BoardController {
 
     }
 
-    // 5. 글 추천
+    // 6. 글 추천
     // http://localhost:8080/board/ddabong?boardId=10
     @PostMapping("/ddabong")
     public boolean ddabong(@RequestParam Integer boardId){return boardService.ddabong(boardId); }
+
 }
