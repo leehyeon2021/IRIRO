@@ -1,6 +1,7 @@
 package iriro.saferoute.service;
 
 import iriro.common.exception.LogSaveException;
+import iriro.community.entity.UserEntity;
 import iriro.saferoute.dto.RoutePointDto;
 import iriro.saferoute.dto.SaveLogDto;
 import iriro.saferoute.entity.LocationlogEntity;
@@ -10,6 +11,7 @@ import iriro.saferoute.repository.RoutePointLogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +31,7 @@ public class RouteLogSaveService {
         log.info("RouteLogSaveService.createRouteLog saveLogDto = {}", saveLogDto);
         //후기와 사용자 빼고 다 저장 가능.
         LocationlogEntity saveEntity = saveLogDto.toEntity();
+        saveEntity.setUserEntity( UserEntity.builder().userId(1).build() );
         return locationLogRepo.save( saveEntity ).getLogId();
     }
 
