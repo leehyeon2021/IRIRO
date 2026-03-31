@@ -4,10 +4,7 @@ import iriro.common.exception.EmailNotFoundException;
 import iriro.common.exception.LogSaveException;
 import iriro.community.entity.UserEntity;
 import iriro.community.repository.UserRepository;
-import iriro.saferoute.dto.RoutePointDto;
-import iriro.saferoute.dto.RouteResponseDto;
-import iriro.saferoute.dto.SafeRouteResponseDto;
-import iriro.saferoute.dto.SaveLogDto;
+import iriro.saferoute.dto.*;
 import iriro.saferoute.entity.LocationlogEntity;
 import iriro.saferoute.entity.RoutePointLogEntity;
 import iriro.saferoute.repository.LocationLogRepository;
@@ -33,7 +30,7 @@ public class RouteLogSaveService {
     private final RoutePointLogRepository routePointLogRepo;
     private final UserRepository userRepo;
 
-    // 로그를 후기(평점)제외하고 저장하고 lodId를 반환하는 함수 --> API 명세서에 추가해야함
+    // 로그 저장 함수
     public Long saveRouteLog(SafeRouteResponseDto safeRouteResponse, String email ){
 
         RouteResponseDto originRoute = safeRouteResponse.getDetourRoute();
@@ -95,9 +92,12 @@ public class RouteLogSaveService {
     }
 
     // 후기(별점)을 받으면 추가로 저장 --> update에 가깝다.
-    public boolean updateLogRating(Long logId, Integer rating){
+    public void updateLogRating(RouteRatingRequestDto routeRatingRequest){
         // 후기 저장
-        return true;
+        LocationlogEntity logEntity = locationLogRepo.findById(routeRatingRequest.getLogId())
+                .orElseThrow(() -> new LogSaveException("log is not found"));
+
+        logEntity.setRating(routeRatingRequest.getRating());
     }
 
 }
