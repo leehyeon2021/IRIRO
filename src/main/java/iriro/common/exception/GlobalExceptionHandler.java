@@ -32,6 +32,17 @@ public class GlobalExceptionHandler {
                 .body("저장에 실패했습니다.");
     }
 
+    // 이메일을 못찾았을 때 예외처리
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<String> handleEmailNotFoundException(EmailNotFoundException e){
+
+        log.error("이메일 못 찾음: {}", e.getMessage(), e);
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body("해당 이메일이 없습니다.");
+    }
+
     // 에상치 못한 예외처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {
