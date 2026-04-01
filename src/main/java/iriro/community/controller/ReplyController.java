@@ -23,18 +23,17 @@ public class ReplyController {
     // Bearer eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvc29AbmF2ZXIuY29tIiwiaWF0IjoxNzc0OTM3NjY1LCJleHAiOjE3NzUwMjQwNjV9.e2i3Yl9CpiEjvSH-uAwxy1pINyKvrbzHt0XNGwPS7Ws
     // { "replyContent" : "박진감보고싶습니감ㅠㅠ" , "boardId" : 2 }
     @PostMapping("/rpwrite")
-    public ResponseEntity<?> rpAdd(@RequestBody ReplyDto replyDto, @RequestHeader("Authorization")String token) {
+    public ResponseEntity<?> rpAdd(@RequestBody ReplyDto replyDto, @RequestHeader(value = "Authorization",required = false) String token) {
 
-        // 기본값을 null로 시작(비회원 상태)
+        // 기본값=비회원 이메일
+        String loginEmail = "iriro@google.com";
 
-        String loginEmail = null;
-
-        if(token != null && token.startsWith("Bearer ")) {
-            String realToken = token.replace("Bearer ","");
-            loginEmail = jwtService.getClaim(realToken);
-        }
-        if(loginEmail == null){
-            return ResponseEntity.ok(false);
+        if(token != null || !token.startsWith("Bearer ")) {
+            String realToken = token.replace("Bearer", "");
+            String realEmail = jwtService.getClaim(realToken);
+            if (realEmail != null) {
+                loginEmail = realEmail;
+            }
         }
         boolean result = replyService.rpAdd(replyDto, loginEmail);
         return ResponseEntity.ok(result);
