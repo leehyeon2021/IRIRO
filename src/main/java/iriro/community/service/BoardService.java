@@ -91,6 +91,7 @@ public class BoardService {
 
 
     // 5. 글 추천
+    @Transactional
     public boolean ddabong(Integer boardId) {
         Optional<BoardEntity> optionalBoard = boardRepository.findById(boardId);
 

@@ -77,7 +77,6 @@ public class BoardController {
     // 5. 리뷰 개별 삭제
     // http://localhost:8080/board/rvdelete?boardId=11
     @DeleteMapping("/rvdelete")
-    @Transactional
     public ResponseEntity<?> rvDelete(@RequestParam Integer boardId ,
                                       @RequestHeader(value="Authorization",required = false)String token){
         if (token == null || !token.startsWith("Bearer ")){
