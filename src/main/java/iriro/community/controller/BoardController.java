@@ -61,11 +61,6 @@ public class BoardController {
         return boardService.rvView(boardId);
     }
 
-//    // 4. 리뷰 개별 수정
-//    @PutMapping("/detail/{boardId}")
-//    public ResponseEntity<?> rvUpdate(@PathVariable Integer boardId, @RequestBody BoardDto boardDto,HttpServletRequest request){
-//        return ResponseEntity.ok(boardService.rvUpdate(boardId,request));
-//    }
 
     // 5. 리뷰 개별 삭제
     // http://localhost:8080/board/rvdelete?boardId=11
