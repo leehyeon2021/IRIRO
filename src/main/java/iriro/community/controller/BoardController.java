@@ -1,15 +1,7 @@
 package iriro.community.controller;
-
-import io.github.bonigarcia.wdm.config.OperatingSystem;
 import iriro.community.dto.BoardDto;
-import iriro.community.entity.BoardEntity;
-import iriro.community.repository.BoardRepository;
 import iriro.community.service.BoardService;
 import iriro.community.service.JWTService;
-import iriro.community.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
