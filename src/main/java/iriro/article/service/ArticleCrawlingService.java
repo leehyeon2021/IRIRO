@@ -35,17 +35,17 @@ public class ArticleCrawlingService {
         System.out.println("=== 서울 범죄 뉴스 크롤링 테스트 시작 ===");
 
         // 검색할 키워드 (테스트용이므로 고정값 사용)
-        String keyword = "서울 범죄";
+        String keyword = "서울 흉기";
 
         // 1. 노컷뉴스 크롤링 (Selenium 사용)
         System.out.println("[노컷뉴스] 수집을 시작합니다.");
         crawlNoCutNews(keyword);
 
-//        // 2. 머니투데이 크롤링 (Jsoup 사용)
-//        System.out.println("[머니투데이] 수집을 시작합니다.");
-//        crawlMtNews(keyword);
-//
-//        System.out.println("=== 범죄 뉴스 크롤링 테스트 완료 ===");
+        // 2. 머니투데이 크롤링 (Jsoup 사용)
+        System.out.println("[머니투데이] 수집을 시작합니다.");
+        crawlMtNews(keyword);
+
+        System.out.println("=== 범죄 뉴스 크롤링 테스트 완료 ===");
     }
 
     // 1. 노컷뉴스 크롤러 (Selenium으로 목록 가져오기 -> Jsoup으로 본문 읽기)
@@ -61,22 +61,22 @@ public class ArticleCrawlingService {
             driver.get(searchUrl);
 
             // 검색 결과가 뜰 때까지 대기
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".news_list_area")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".content > #news > .newslist")));
 
             // 기사 목록 싹 다 가져오기 (1페이지)
-            List<WebElement> articles = driver.findElements(By.cssSelector(".news_list_area .item"));
+            List<WebElement> articles = driver.findElements(By.cssSelector(".newslist > li"));
 
             // 안전장치 1: 몇 개 가져왔는지 세는 카운터
             int count = 0;
 
             for (WebElement article : articles) {
-                // 안전장치 1: 1개 다 채웠으면 반복문을 강제 종료
-                if (count >= 1) {
-                    System.out.println("안전을 위해 1개만 수집하고 노컷뉴스를 빠져나갑니다.");
+                // 안전장치 1: 5개 다 채웠으면 반복문을 강제 종료
+                if (count >= 5) {
+                    System.out.println("안전을 위해 5개만 수집하고 노컷뉴스를 빠져나갑니다.");
                     break;
                 }
 
-                String title = article.findElement(By.cssSelector(".title")).getText().trim();
+                String title = article.findElement(By.cssSelector("a > strong")).getText().trim();
                 String url = article.findElement(By.cssSelector("a")).getAttribute("href");
 
                 if (url.isEmpty() || articleRepository.existsByArticleUrl(url)) continue;
@@ -92,8 +92,8 @@ public class ArticleCrawlingService {
                 count++;
 
                 // 안전장치 2: 1.5초
-                System.out.println("로봇 의심 방지... 1.5초 대기 💤");
-                Thread.sleep(1500);
+                System.out.println("2.7초 대기");
+                Thread.sleep(2700);
             }
         } catch (Exception e) {
             System.out.println("노컷뉴스 오류: " + e.getMessage());
@@ -105,7 +105,7 @@ public class ArticleCrawlingService {
     // 2. 머니투데이 크롤러 (목록, 본문 전부 Jsoup)
     private void crawlMtNews(String keyword) {
         try {
-            String searchUrl = "https://search.mt.co.kr/searchNewsList.html?srchTp=all&wd=" + keyword;
+            String searchUrl = "https://www.mt.co.kr/search?startDate=20260101&endDate=20260401&filter=contents&order=accuracy&keyword=" + keyword;
 
             Document doc = Jsoup.connect(searchUrl)
                     .userAgent("Mozilla/5.0")
@@ -114,23 +114,43 @@ public class ArticleCrawlingService {
 
             Elements articles = doc.select(".list_news > li");
 
+            int count = 0; // 안전장치 1: 개수 세는 카운터
+
             for (Element article : articles) {
-                String title = article.select(".subject").text().trim();
-                String url = article.select("a").attr("abs:href");
+                // 안전장치 2: 5개 다 채웠으면 반복문을 강제 종료
+                if (count >= 5) {
+                    System.out.println("안전을 위해 5개만 수집하고 머니투데이를 빠져나갑니다.");
+                    break;
+                }
 
-                // URL 없거나 이미 저장된 기사면 건너뜀
-                if (url.isEmpty() || articleRepository.existsByArticleUrl(url)) continue;
+                try {
+                    String title = article.select("a > .headline news--tertiary").text().trim();
+                    String url = article.select(".article_item > a").attr("abs:href");
 
-                // 상세 페이지로 들어가서 본문 전체 가져오기
-                String content = fetchContent(url);
+                    // URL 없거나 이미 저장된 기사 건너뜀
+                    if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
+                        continue;
+                    }
 
-                // 필터 통과 못 하면 건너뜀
-                if (!filter.isValid(title, content)) continue;
+                    // 상세 페이지 본문 전체 가져오기
+                    String content = fetchContent(url);
 
-                // 회원님 테이블 규격에 맞춰 저장
-                saveToDb(title, url, content, "머니투데이", keyword);
+                    // 필터 통과 못 하면 건너뜀
+                    if (!filter.isValid(title, content)) continue;
 
-                Thread.sleep(500); // 다음 기사로 넘어가기 전 0.5초 대기
+                    // 저장
+                    saveToDb(title, url, content, "머니투데이", keyword);
+
+                    count++; // 성공 카운터 1 증가
+
+                    // 안전장치 3: 2.7초
+                    System.out.println("2.7초 대기");
+                    Thread.sleep(2700);
+
+                } catch (Exception innerE) {
+                    // 기사 하나가 에러 나도 전체가 멈추지 않게
+                    System.out.println("머니투데이 개별 기사 건너뜀: " + innerE.getMessage());
+                }
             }
         } catch (Exception e) {
             System.out.println("머니투데이 오류: " + e.getMessage());
