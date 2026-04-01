@@ -44,16 +44,15 @@ public class ReplyController {
     @DeleteMapping("/rpdelete")
     public ResponseEntity<?> rpDelete(@RequestParam Integer replyId,
                                       @RequestHeader(value = "Authorization",required = false)String token) {
-        if (token == null || !token.startsWith("Bearer ")){
-            return ResponseEntity.ok(false);
+        String loginEmail = "[iriro@google.com](mailto:iriro@google.com)";
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.ok(replyService.rpDelete(replyId, loginEmail));
         }
-        String realToken = token.replace("Bearer ","");
-        String loginEmail = jwtService.getClaim(realToken);
-        if(loginEmail==null){
-            return ResponseEntity.ok(false);
-        }
-        boolean result = replyService.rpDelete(replyId, loginEmail);
-        return ResponseEntity.ok(result);
-        }
+        String realToken = token.replace("Bearer ", "");
+        String realEmail = jwtService.getClaim(realToken);
+        if (realEmail != null) loginEmail = realEmail;
+        return ResponseEntity.ok(replyService.rpDelete(replyId, loginEmail));
+    }
+
 
     }
