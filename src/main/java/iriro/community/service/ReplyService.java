@@ -17,7 +17,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ReplyService {
     private final ReplyRepository replyRepository;
     private final UserRepository userRepository;
