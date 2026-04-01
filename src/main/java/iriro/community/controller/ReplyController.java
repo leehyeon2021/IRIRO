@@ -26,10 +26,10 @@ public class ReplyController {
     public ResponseEntity<?> rpAdd(@RequestBody ReplyDto replyDto, @RequestHeader(value = "Authorization",required = false) String token) {
 
         // 기본값=비회원 이메일
-        String loginEmail = "iriro@google.com";
+        String loginEmail = "test@gmail.com";
 
-        if(token != null || !token.startsWith("Bearer ")) {
-            String realToken = token.replace("Bearer", "");
+        if(token != null && !token.startsWith("Bearer ")) {
+            String realToken = token.replace("Bearer ", "");
             String realEmail = jwtService.getClaim(realToken);
             if (realEmail != null) {
                 loginEmail = realEmail;
@@ -44,7 +44,7 @@ public class ReplyController {
     @DeleteMapping("/rpdelete")
     public ResponseEntity<?> rpDelete(@RequestParam Integer replyId,
                                       @RequestHeader(value = "Authorization",required = false)String token) {
-        String loginEmail = "[iriro@google.com](mailto:iriro@google.com)";
+        String loginEmail = "test.gmail.com";
         if (token == null || !token.startsWith("Bearer ")) {
             return ResponseEntity.ok(replyService.rpDelete(replyId, loginEmail));
         }
