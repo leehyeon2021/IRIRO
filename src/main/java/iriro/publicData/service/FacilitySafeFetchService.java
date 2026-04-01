@@ -63,7 +63,7 @@ public class FacilitySafeFetchService {
                         .bodyToMono(new ParameterizedTypeReference<Map<String,Object>>(){})
                         .block();
 
-                // 열어
+                // 열기
                 Map<String,Object> responseInner = (Map<String, Object>) response.get("response");
                 Map<String,Object> body = (Map<String, Object>) responseInner.get("body");
 
@@ -74,7 +74,7 @@ public class FacilitySafeFetchService {
                     totalPages = (totalCount+numOfRows-1)/numOfRows;
                 }
 
-                // item 저장(List임)
+                // item 저장(List)
                 List<Map<String,Object>> itemList = (List<Map<String, Object>>) body.get("items");
 
                 // 저장
@@ -92,7 +92,7 @@ public class FacilitySafeFetchService {
                     // 비교 위한 저장
                     deleteCheck.add(facName+facAdd);
 
-                    // DB에 있나요
+                    // DB 확인
                     Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd( facName, facAdd );
                     if(exists.isPresent()){
                         FacilitySafeEntity exist = exists.get();
@@ -155,16 +155,16 @@ public class FacilitySafeFetchService {
                         .bodyToMono(new ParameterizedTypeReference<Map<String,Object>>() {})
                         .block();
 
-                // 열어
+                // 열기
                 Map<String, Object> body = (Map<String, Object>) response.get("body");
-                // totalCount 가져와
+                // totalCount 가져오기
                 if (page==1){
                     totalCount=Integer.parseInt(String.valueOf(body.get("totalCount")));
                     System.out.println("totalCount: "+totalCount);
                     totalPages=(totalCount+numOfRows-1)/numOfRows;
                 }
 
-                // 더 열어
+                // 더 열기
                 Map<String, Object> items = (Map<String, Object>) body.get("items");
                 List<Map<String, Object>> itemList = (List<Map<String, Object>>) items.get("item");
 
@@ -193,7 +193,7 @@ public class FacilitySafeFetchService {
                     String xStr = (String) item.get("x");
                     String yStr = (String) item.get("y");
 
-                    // x좌표가 0 이면 지오코딩 (x없으면y도없음)
+                    // x좌표가 0 이면 지오코딩
                     double lat;  double lng;
                     if (xStr == null || xStr.equals("0")) {
                         double[] coords = gs.getCoordsKakao(facAdd);
@@ -205,15 +205,15 @@ public class FacilitySafeFetchService {
                         lng = Double.parseDouble(xStr);
                     }
 
-                    // DB에 있나요
+                    // DB 확인
                     Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd(facName , facAdd);
-                    if(exists.isPresent()){         // 네
+                    if(exists.isPresent()){
                         FacilitySafeEntity exist = exists.get();
                         exist.setFacTel(facTel);
                         exist.setFacSgg(facSgg);
                         exist.setFacLat(lat);
                         exist.setFacLng(lng);
-                    }else {                         // 아니요
+                    }else {
                         fr.save(FacilitySafeEntity.builder()
                                 .facType("경찰서")
                                 .facSgg(facSgg)
@@ -282,7 +282,7 @@ public class FacilitySafeFetchService {
                     totalPages=(totalCount+numOfRows-1)/numOfRows;
                 }
 
-                // 더 열어 ('row')
+                // 더 열기 ('row')
                 List<Map<String,Object>> itemList = (List<Map<String, Object>>) tbSafeReturnItem.get("row");
 
                 // 저장
@@ -314,7 +314,7 @@ public class FacilitySafeFetchService {
                     String instlCnt = (String) item.get("INSTL_CNT");
                     Integer instlcut = instlCnt!=null&&!instlCnt.isEmpty() ? Integer.parseInt(instlCnt) : null;
 
-                    // DB에 있나요
+                    // DB 확인
                     Optional<FacilitySafeEntity> exists = fr.findByFacNameAndFacAdd(facName,facAdd);
                     if(exists.isPresent()){
                         FacilitySafeEntity exist = exists.get();

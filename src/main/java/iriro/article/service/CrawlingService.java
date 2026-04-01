@@ -1,7 +1,5 @@
 package iriro.article.service;
 
-import iriro.article.dto.ArticleDto;
-import iriro.article.entity.ArticleEntity;
 import iriro.article.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,11 +9,9 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class ArticleService {
+public class CrawlingService {
     private final ArticleRepository ar;
 
-//    public List<ArticleDto> getArticleFindAll(){
-//        return
-//    }
-
+    // 1. Jsoup 이용 정보 수집
+    public List<Map<String, Object>>
 }

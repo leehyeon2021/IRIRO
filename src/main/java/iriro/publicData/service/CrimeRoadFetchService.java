@@ -40,7 +40,7 @@ public class CrimeRoadFetchService{
         Set<String> count = new HashSet<>();
 
         try {
-            // totalCount을 찾아라 하나둘셋 으아악
+            // totalCount 찾기
             for (int page = 1; page <= totalPages; page++) {
 
                 // 서비스키를 주소상에 포함
@@ -59,7 +59,7 @@ public class CrimeRoadFetchService{
                         .block();
                 System.out.println(response);
 
-                // 열어
+                // 열기
                 Map<String, Object> responseInner = (Map<String, Object>) response.get("response");
                 Map<String, Object> body = (Map<String, Object>) responseInner.get("body");
 
@@ -70,7 +70,7 @@ public class CrimeRoadFetchService{
                     System.out.println("totalCount: "+totalCount);
                 }
 
-                // 더 열어
+                // 더 열기
                 Map<String, Object> items = (Map<String, Object>) body.get("items");
                 List<Map<String, Object>> itemList = (List<Map<String, Object>>) items.get("item");
 
@@ -100,7 +100,7 @@ public class CrimeRoadFetchService{
                     String roadType = getRoadSuffix(roadName);
                     int zipCode = Integer.parseInt((String) item.get("roadNmZip"));
 
-                    // DB에 있나요
+                    // DB 확인
                     Optional<CrimeRoadEntity> exists = cr.findByCriSggAndCriRoad(sggNm, ctpvNm);
                     if(exists.isPresent()){
                         // 있으면 업데이트
@@ -108,7 +108,7 @@ public class CrimeRoadFetchService{
                         exist.setCriType(roadType);
                         exist.setCriZip(zipCode);
                         exist.setCriCount(exist.getCriCount() + 1); // 중복
-                            // 좌표가 없을 때만!! 지오코딩 (지오코딩 횟수 줄이기 위함)
+                            // 좌표가 없을 때만 지오코딩 (지오코딩 횟수 줄이기 위함)
                             if (exist.getCriLat() == null) {
                                 double[] coords = gs.getCoordsKakao(fullAdr);
                                 if (coords != null) {
@@ -117,7 +117,7 @@ public class CrimeRoadFetchService{
                                 }
                             }
                     } else {
-                        // 없을 때만!! 지오코딩
+                        // 없을 때만 지오코딩
                         double[] coords = gs.getCoordsKakao(fullAdr);
                         if (coords == null) {
                             System.out.println("좌표 저장 실패: " + fullAdr);
