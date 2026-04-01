@@ -20,7 +20,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -70,30 +72,41 @@ public class ArticleCrawlingService {
             int count = 0;
 
             for (WebElement article : articles) {
-                // 안전장치 1: 5개 다 채웠으면 반복문을 강제 종료
-                if (count >= 5) {
-                    System.out.println("안전을 위해 5개만 수집하고 노컷뉴스를 빠져나갑니다.");
-                    break;
+                try{
+                    // 안전장치 1: 5개 다 채웠으면 반복문을 강제 종료
+                    if (count >= 5) {
+                        System.out.println("안전을 위해 5개만 수집하고 노컷뉴스를 빠져나갑니다.");
+                        break;
+                    }
+
+                    String title = article.findElement(By.cssSelector("a > strong")).getText().trim();
+                    String url = article.findElement(By.cssSelector("a")).getAttribute("href");
+                    String pic = article.findElement(By.cssSelector(".img > a > img")).getAttribute("src");
+                    String date = article.findElement(By.cssSelector(".txt > span")).getText().trim();
+
+                    if (url.isEmpty() || articleRepository.existsByArticleUrl(url)) continue;
+
+                    // 상세 페이지 본문 정보
+                    Map<String, String> details = fetchArticleDetails(url);
+
+                    // 상자에서 본문과 기자 이름을 꺼냅니다.
+                    String content = details.get("content");
+                    String writer = details.get("writer");
+
+                    if (!filter.isValid(title, content)) continue;
+
+                    saveToDb(title, url, content, "노컷뉴스", keyword, date, writer, pic);
+
+                    // 저장 성공 카운터 1 증가
+                    count++;
+
+                    // 안전장치 2: 1.5초
+                    System.out.println("2.7초 대기");
+                    Thread.sleep(2700);
+                } catch (Exception e) {
+                    // 특정 기사 1개에서 에러가 나더라도 전체 크롤링이 멈추지 않도록 내부에서 예외처리
+                    System.out.println("개별 기사 파싱 중 오류 (건너뜀): " + e.getMessage());
                 }
-
-                String title = article.findElement(By.cssSelector("a > strong")).getText().trim();
-                String url = article.findElement(By.cssSelector("a")).getAttribute("href");
-
-                if (url.isEmpty() || articleRepository.existsByArticleUrl(url)) continue;
-
-                // 본문 긁어오기
-                String content = fetchContent(url);
-
-                if (!filter.isValid(title, content)) continue;
-
-                saveToDb(title, url, content, "노컷뉴스", keyword);
-
-                // 저장 성공 카운터 1 증가
-                count++;
-
-                // 안전장치 2: 1.5초
-                System.out.println("2.7초 대기");
-                Thread.sleep(2700);
             }
         } catch (Exception e) {
             System.out.println("노컷뉴스 오류: " + e.getMessage());
@@ -105,14 +118,14 @@ public class ArticleCrawlingService {
     // 2. 머니투데이 크롤러 (목록, 본문 전부 Jsoup)
     private void crawlMtNews(String keyword) {
         try {
-            String searchUrl = "https://www.mt.co.kr/search?startDate=20260101&endDate=20260401&filter=contents&order=accuracy&keyword=" + keyword;
+            String searchUrl = "https://www.mt.co.kr/search?filter=contents&order=accuracy&keyword=" + keyword;
 
             Document doc = Jsoup.connect(searchUrl)
                     .userAgent("Mozilla/5.0")
                     .timeout(5000)
                     .get();
 
-            Elements articles = doc.select(".list_news > li");
+            Elements articles = doc.select(".article_item");
 
             int count = 0; // 안전장치 1: 개수 세는 카운터
 
@@ -124,8 +137,11 @@ public class ArticleCrawlingService {
                 }
 
                 try {
-                    String title = article.select("a > .headline news--tertiary").text().trim();
-                    String url = article.select(".article_item > a").attr("abs:href");
+                    String title = article.select(".headline").text().trim();
+                    String url = article.select("a").attr("abs:href");
+                    String pic = article.select(".article_body > .thumb > img").attr("src");
+                    String writer = article.select(".writer").text().replace("CBC노컷뉴스", "").replace("기자", "").trim();
+                    String date = article.select(".article_date").text().trim();
 
                     // URL 없거나 이미 저장된 기사 건너뜀
                     if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
@@ -133,13 +149,15 @@ public class ArticleCrawlingService {
                     }
 
                     // 상세 페이지 본문 전체 가져오기
-                    String content = fetchContent(url);
+                    Map<String, String> details = fetchArticleDetails(url);
+
+                    String content = details.get("content");
 
                     // 필터 통과 못 하면 건너뜀
                     if (!filter.isValid(title, content)) continue;
 
                     // 저장
-                    saveToDb(title, url, content, "머니투데이", keyword);
+                    saveToDb(title, url, content, "머니투데이", keyword, date, writer, pic);
 
                     count++; // 성공 카운터 1 증가
 
@@ -157,38 +175,56 @@ public class ArticleCrawlingService {
         }
     }
 
-    // 3. 기사 본문 상세
-    private String fetchContent(String articleUrl) {
-        try {
+    // 3. 기사 본문 상세 (본문, 기자)
+    private Map<String, String> fetchArticleDetails(String articleUrl){
+        Map<String, String> result = new HashMap<>();
+        result.put("content", "");
+        result.put("writer", "");
+
+        try{
             Document doc = Jsoup.connect(articleUrl)
                     .userAgent("Mozilla/5.0")
                     .timeout(5000)
                     .get();
 
-            // 머니투데이(#textBody), 노컷뉴스(#pnlContent) 및 범용 뉴스 사이트 본문 태그를 모두 포괄하는 선택자
+            // 본문 가져오기
             Element body = doc.selectFirst("div#textBody, div#pnlContent, article, div.article-body, div.news-body, div#articleBody");
+            if(body != null){
+                result.put("content", body.text());
+            }
 
-            return body != null ? body.text() : "";
+            // 기자 이름 가져오기
+            Element writer = doc.selectFirst("li.email > a, a.a_reporter > strong");
+            if (writer != null) {
+                String cleanWriter = writer.text().replace("기자", "").trim();
+                result.put("writer", cleanWriter);
+            }
+
         } catch (Exception e) {
-            return "";
+            System.out.println("상세 페이지 파싱 오류: " + e.getMessage());
         }
+
+        return result;
     }
 
     // 4. 저장
-    private void saveToDb(String title, String url, String content, String siteName, String keyword) {
-        // DB 글자 수 제한 방어 로직 (articleTitle: 100자, articleSite: 10자)
+    private void saveToDb(String title, String url, String content, String siteName, String keyword, String date, String writer, String pic) {
+        // DB 글자 수 제한 지키기
         String safeTitle = title.length() > 95 ? title.substring(0, 95) + "..." : title;
         String safeSite = siteName.length() > 10 ? siteName.substring(0, 10) : siteName;
+        String safeDate = date.length() > 10 ? date.substring(0, 10) : date;
+        String safeWriter = writer.length() > 20 ? writer.substring(0, 20) : writer;
+        String safePic = pic.length() > 250 ? pic.substring(0, 250) : pic;
 
         articleRepository.save(ArticleEntity.builder()
                 .articleTitle(safeTitle)
                 .articleUrl(url)
                 .articleContent(content)
                 .articleSite(safeSite)
-                .articleKeyword(keyword) // "서울 범죄"
-                .articleDate("")   // 현재 버전 미사용 (빈값)
-                .articlePic("")    // 현재 버전 미사용 (빈값)
-                .articleWriter("") // 현재 버전 미사용 (빈값)
+                .articleKeyword(keyword)
+                .articleDate(safeDate)
+                .articleWriter(safeWriter)
+                .articlePic(safePic)
                 .build());
 
         System.out.println("저장 완료 [" + safeSite + "]: " + safeTitle);
