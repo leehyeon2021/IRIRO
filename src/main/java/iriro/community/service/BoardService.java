@@ -75,13 +75,23 @@ public class BoardService {
 
 
     // 5. 리뷰 개별 삭제 (회원)
+    @Transactional
     public boolean rvDelete(Integer boardId,String loginEmail) {
-     BoardEntity entity = boardRepository.findById(boardId).orElse(null);
-     return true;
+    if(boardId==null||loginEmail==null){return false;}
+    BoardEntity board = boardRepository.findById(boardId).orElse(null);
+
+        if(board == null) {return false;}
+        if(board.getUserEntity()==null||!board.getUserEntity().getEmail().equals(loginEmail)){
+            System.out.println("경고 : 해당하는 글의 작성자가 아닙니다.");
+            return false;
+        }
+        boardRepository.delete(board);
+        return true;
     }
 
 
     // 5. 글 추천
+    @Transactional
     public boolean ddabong(Integer boardId) {
         Optional<BoardEntity> optionalBoard = boardRepository.findById(boardId);
 

@@ -1,15 +1,7 @@
 package iriro.community.controller;
-
-import io.github.bonigarcia.wdm.config.OperatingSystem;
 import iriro.community.dto.BoardDto;
-import iriro.community.entity.BoardEntity;
-import iriro.community.repository.BoardRepository;
 import iriro.community.service.BoardService;
 import iriro.community.service.JWTService;
-import iriro.community.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +54,7 @@ public class BoardController {
     }
 
     // 3. 리뷰 상세 조회
-    // http://localhost:8080/board/all/detail?boardId=1
+    // http://localhost:8080/board/detail?boardId=1
     @GetMapping("/detail")
     public BoardDto rvView(@RequestParam Integer boardId){
         return boardService.rvView(boardId);
@@ -74,10 +66,9 @@ public class BoardController {
 //        return ResponseEntity.ok(boardService.rvUpdate(boardId,request));
 //    }
 
-    // 5. 리뷰 개별 삭제 (회원)
+    // 5. 리뷰 개별 삭제
     // http://localhost:8080/board/rvdelete?boardId=11
     @DeleteMapping("/rvdelete")
-    @Transactional
     public ResponseEntity<?> rvDelete(@RequestParam Integer boardId ,
                                       @RequestHeader(value="Authorization",required = false)String token){
         if (token == null || !token.startsWith("Bearer ")){

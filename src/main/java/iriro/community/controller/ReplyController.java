@@ -1,20 +1,13 @@
 package iriro.community.controller;
 
 import iriro.community.dto.ReplyDto;
-import iriro.community.entity.ReplyEntity;
-import iriro.community.repository.ReplyRepository;
 import iriro.community.service.JWTService;
 import iriro.community.service.ReplyService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
