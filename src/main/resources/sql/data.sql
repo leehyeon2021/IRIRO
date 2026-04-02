@@ -92,7 +92,7 @@ INSERT INTO reply (reply_id, board_id, user_id, reply_content, created_at, updat
 (10, 2, 3, '나중에 경찰에 순찰 강화 요청도 해봐야겠네요. 무사히 귀가하셔서 다행입니다!', '2026-03-19 08:00:00', '2026-03-19 08:00:00');
 
 -- [8] article
-INSERT INTO article (article_title, article_date, article_content, article_url, article_writer, article_picurl, article_site, article_keyword) VALUES
+INSERT INTO article (article_title, article_date, article_content, article_url, article_writer, article_pic, article_site, article_keyword) VALUES
 ('서울 강남구 무면허 음주운전 사고…20대 남성 현행범 체포', '2026.03.11', '서울 강남경찰서는 만취 상태로 운전하다 사고를 낸 20대 남성을...', 'https://www.mt.co.kr/society/2026/03/11/ex1', '김철수', 'https://thumb.mt.co.kr/ex1.jpg', '머니투데이', '강남구, 음주운전, 무면허, 20대, 현행범, 체포, 강남경찰서'),
 ('마포구 편의점 흉기 위협 강도 미수 사건 발생', '2026.03.12', '서울 마포구의 한 편의점에서 흉기로 점주를 위협하던 30대가...', 'https://www.mt.co.kr/society/2026/03/12/ex2', '이영희', 'https://thumb.mt.co.kr/ex2.jpg', '머니투데이', '마포구, 편의점, 흉기, 강도미수, 30대, 치안'),
 ('송파구 아파트 단지 내 금품 절도범, CCTV 추적으로 검거', '2026.03.13', '최근 송파구 일대 아파트를 돌며 택배 물품을 훔쳐온 일당이...', 'https://www.mt.co.kr/society/2026/03/13/ex3', '박민준', 'https://thumb.mt.co.kr/ex3.jpg', '머니투데이', '송파구, 아파트, 절도, CCTV, 택배, 검거, 일당'),
