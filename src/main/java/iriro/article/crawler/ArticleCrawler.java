@@ -43,20 +43,20 @@ public class ArticleCrawler {
             String searchUrl = "https://search.nocutnews.co.kr/list?query=" + keyword;
             driver.get(searchUrl);
 
-            // 검색 결과가 뜰 때까지 대기
+            // 검색 결과 뜰 때까지 대기
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".content > #news > .newslist")));
 
-            // 기사 목록 싹 다 가져오기 (1페이지)
+            // 기사 목록 (1페이지)
             List<WebElement> articles = driver.findElements(By.cssSelector(".newslist > li"));
 
-            // 안전장치 1: 몇 개 가져왔는지 세는 카운터
+            // 안전장치 1: 몇 개 가져왔는지 세기
             int count = 0;
 
             for (WebElement article : articles) {
                 try{
                     // 안전장치 1: 5개 다 채웠으면 반복문을 강제 종료
-                    if (count >= 5) {
-                        System.out.println("안전을 위해 5개만 수집하고 노컷뉴스를 빠져나갑니다.");
+                    if (count >= 10) {
+                        System.out.println(count+"개 수집. 노컷뉴스 크롤링 종료.");
                         break;
                     }
 
@@ -73,6 +73,12 @@ public class ArticleCrawler {
                     // 상자에서 본문과 기자 이름을 꺼냅니다.
                     String content = details.get("content");
                     String writer = details.get("writer");
+
+                    // 사회/문화 html 넘기기
+                    if( writer.contains("메일보내기")){
+                        System.out.println("다른 형식의 뉴스 건너뛰기: " + title);
+                        continue;
+                    }
 
                     if (!filter.isValid(title, content)) continue;
 
@@ -108,12 +114,12 @@ public class ArticleCrawler {
 
             Elements articles = doc.select(".article_item");
 
-            int count = 0; // 안전장치 1: 개수 세는 카운터
+            int count = 0; // 안전장치 1: 개수 세기
 
             for (Element article : articles) {
-                // 안전장치 2: 5개 다 채웠으면 반복문을 강제 종료
-                if (count >= 5) {
-                    System.out.println("안전을 위해 5개만 수집하고 머니투데이를 빠져나갑니다.");
+                // 안전장치 2: 5개 다 채웠으면 반복문 강제 종료
+                if (count >= 10) {
+                    System.out.println(count+"개 수집. 머니투데이 크롤링 종료.");
                     break;
                 }
 
@@ -121,7 +127,7 @@ public class ArticleCrawler {
                     String title = article.select(".headline").text().trim();
                     String url = article.select("a").attr("abs:href");
                     String pic = article.select(".article_body > .thumb > img").attr("src");
-                    String writer = article.select(".writer").text().trim();
+                    String writer = article.select(".writer").text().replace(" 기자", "").trim();
                     String date = article.select(".article_date").text().trim();
 
                     // URL 없거나 이미 저장된 기사 건너뜀
@@ -177,7 +183,7 @@ public class ArticleCrawler {
             // 기자 이름 가져오기
             Element writer = doc.selectFirst("li.email > a, a.a_reporter > strong");
             if (writer != null) {
-                String cleanWriter = writer.text().replace("CBC노컷뉴스", "").replace("기자", "").trim();
+                String cleanWriter = writer.text().replace("CBS노컷뉴스", "").replace("기자", "").trim();
                 result.put("writer", cleanWriter);
             }
 
