@@ -15,6 +15,7 @@ public class ArticleService {
         // DB 글자 수 제한 지키기
         String safeTitle = title.length() > 95 ? title.substring(0, 95) + "..." : title;
         String safeSite = siteName.length() > 10 ? siteName.substring(0, 10) : siteName;
+        String safeDistrict = district.length() > 10 ? district.substring(0, 10) : district;
         String safeDate = date.length() > 10 ? date.substring(0, 10) : date;
         String safeWriter = writer.length() > 20 ? writer.substring(0, 20) : writer;
         String safePic = pic.length() > 250 ? pic.substring(0, 250) : pic;
@@ -24,7 +25,7 @@ public class ArticleService {
                 .articleUrl(url)
                 .articleContent(content)
                 .articleSite(safeSite)
-                .articleDistrict(district)
+                .articleDistrict(safeDistrict)
                 .articleKeyword(keyword) // 추가 필요
                 .articleDate(safeDate)
                 .articleWriter(safeWriter)
