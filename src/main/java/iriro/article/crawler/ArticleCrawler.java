@@ -54,7 +54,7 @@ public class ArticleCrawler {
 
             for (WebElement article : articles) {
                 try{
-                    // 안전장치 1: 10개 다 채웠으면 반복문을 강제 종료
+                    // 10개 다 채웠으면 반복문을 강제 종료
                     if (count >= 1) {
                         System.out.println(count+"개 수집. 노컷뉴스 크롤링 종료.");
                         break;
@@ -63,14 +63,15 @@ public class ArticleCrawler {
                     String title = article.findElement(By.cssSelector("a > strong")).getText().trim();
                     String url = article.findElement(By.cssSelector("a")).getAttribute("href");
                     String pic = article.findElement(By.cssSelector(".img > a > img")).getAttribute("src");
-                    String date = article.findElement(By.cssSelector(".txt > span")).getText().trim();
+                    String date = article.findElement(By.cssSelector(".txt > span")).getText().replace(".","-").trim();
 
-                    if (url.isEmpty() || articleRepository.existsByArticleUrl(url)) continue;
+                    // URL 없거나 이미 저장된 기사 건너뜀
+                    if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
+                        continue;
+                    }
 
                     // 상세 페이지 본문 정보
                     Map<String, String> details = fetchArticleDetails(url);
-
-                    // 상자에서 본문과 기자 이름을 꺼냅니다.
                     String content = details.get("content");
                     String writer = details.get("writer");
 
@@ -80,18 +81,19 @@ public class ArticleCrawler {
                         continue;
                     }
 
-                    if (!filter.isValid(title, content)) continue;
+                    // 1) AI에게 묻고 , 2) 5초 쉼 (무료 한도 제한: 1분 15회)
+                    boolean isCrimeNews = filter.isValid(title, content);
+                    System.out.println("5초 대기");
+                    Thread.sleep(5000);
 
+                    // 아니면 넘김
+                    if(!isCrimeNews){continue;}
+                    // 맞으면 저장
                     articleService.saveToDb(title, url, content, "노컷뉴스", district, keyword, date, writer, pic);
-
-                    // 저장 성공 카운터 1 증가
+                    // 저장 성공 count 1 증가
                     count++;
 
-                    // 안전장치 2: 1.5초
-                    System.out.println("2.7초 대기");
-                    Thread.sleep(2700);
                 } catch (Exception e) {
-                    // 특정 기사 1개에서 에러가 나더라도 전체 크롤링이 멈추지 않도록 내부에서 예외처리
                     System.out.println("개별 기사 파싱 중 오류 (건너뜀): " + e.getMessage());
                 }
             }
@@ -128,33 +130,31 @@ public class ArticleCrawler {
                     String url = article.select("a").attr("abs:href");
                     String pic = article.select(".article_body > .thumb > img").attr("src");
                     String writer = article.select(".writer").text().replace(" 기자", "").trim();
-                    String date = article.select(".article_date").text().trim();
+                    String date = article.select(".article_date").text().replace(".","-").trim();
 
                     // URL 없거나 이미 저장된 기사 건너뜀
                     if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
                         continue;
                     }
 
-                    // 상세 페이지 본문 전체 가져오기
+                    // 상세 페이지 본문 정보
                     Map<String, String> details = fetchArticleDetails(url);
-
                     String content = details.get("content");
 
-                    // 필터 통과 못 하면 건너뜀
-                    if (!filter.isValid(title, content)) continue;
+                    // 1) AI에게 묻고 , 2) 5초 쉼 (무료 한도 제한: 1분 15회)
+                    boolean isCrimeNews = filter.isValid(title, content);
+                    System.out.println("5초 대기");
+                    Thread.sleep(5000);
 
-                    // 저장
+                    // 아니면 넘김
+                    if(!isCrimeNews){continue;}
+                    // 맞으면 저장
                     articleService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
+                    // 저장 성공 count 1 증가
+                    count++;
 
-                    count++; // 성공 카운터 1 증가
-
-                    // 안전장치 3: 2.7초
-                    System.out.println("2.7초 대기");
-                    Thread.sleep(2700);
-
-                } catch (Exception innerE) {
-                    // 기사 하나가 에러 나도 전체가 멈추지 않게
-                    System.out.println("머니투데이 개별 기사 건너뜀: " + innerE.getMessage());
+                }catch(Exception e){
+                    System.out.println("개별 기사 파싱 중 오류 (건너뜀): " + e.getMessage());
                 }
             }
         } catch (Exception e) {
@@ -162,7 +162,8 @@ public class ArticleCrawler {
         }
     }
 
-    // 3. 기사 본문 상세 (본문, 기자)
+
+    // * 기사 본문 상세 (본문, 기자)
     private Map<String, String> fetchArticleDetails(String articleUrl){
         Map<String, String> result = new HashMap<>();
         result.put("content", "");
