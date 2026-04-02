@@ -1,8 +1,8 @@
-package iriro.article.service;
+package iriro.article.crawler;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import iriro.article.entity.ArticleEntity;
 import iriro.article.repository.ArticleRepository;
+import iriro.article.service.ArticleService;
 import iriro.article.util.CrimeNewsFilter;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -16,61 +16,23 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class ArticleCrawlingService {
+public class ArticleCrawler {
 
     private final ArticleRepository articleRepository;
     private final CrimeNewsFilter filter;
-
-    // 매일 오전 6시 자동 실행
-    //@Scheduled(cron = "0 0 6 * * *")
-    public void crawlAll() {
-        System.out.println("=== 서울 범죄 뉴스 크롤링 테스트 시작 ===");
-
-        // 1. 서울시 25개 구 명단 (배열)
-//        String[] seoulDistricts = {
-//                "강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구",
-//                "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구",
-//                "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"
-//        };
-        String[] seoulDistricts = {"강남구", "송파구", "마포구"};
-
-        // 2. 지역구 하나씩 검색
-        for (String district : seoulDistricts) {
-
-            // +) 검색 도움 키워드
-            String keyword = district + " 범죄";
-
-            // 1. 노컷뉴스 크롤링 (Selenium 사용)
-            System.out.println("[노컷뉴스] 크롤링 시작");
-            crawlNoCutNews(keyword);
-
-            // 2. 머니투데이 크롤링 (Jsoup 사용)
-            System.out.println("[머니투데이] 크롤링 시작");
-            crawlMtNews(keyword);
-
-            // 3. 안전장치: 한 지역구 끝날 때마다 대기
-            try {
-                System.out.println("지역 변경 중 (5초 대기)");
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                System.out.println("지역 변경 대기 중 오류 발생");
-            }
-        }
-        System.out.println("=== 서울 전체 범죄 뉴스 크롤링 종료 ===");
-    }
+    private final ArticleService articleService;
 
     // 1. 노컷뉴스 크롤러 (Selenium으로 목록 가져오기 -> Jsoup으로 본문 읽기)
-    private void crawlNoCutNews(String keyword) {
+    public void crawlNoCutNews(String keyword, String district) {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new", "--disable-gpu");
@@ -114,7 +76,7 @@ public class ArticleCrawlingService {
 
                     if (!filter.isValid(title, content)) continue;
 
-                    saveToDb(title, url, content, "노컷뉴스", keyword, date, writer, pic);
+                    articleService.saveToDb(title, url, content, "노컷뉴스", district, keyword, date, writer, pic);
 
                     // 저장 성공 카운터 1 증가
                     count++;
@@ -135,7 +97,7 @@ public class ArticleCrawlingService {
     }
 
     // 2. 머니투데이 크롤러 (목록, 본문 전부 Jsoup)
-    private void crawlMtNews(String keyword) {
+    public void crawlMtNews(String keyword, String district) {
         try {
             String searchUrl = "https://www.mt.co.kr/search?filter=contents&order=accuracy&keyword=" + keyword;
 
@@ -159,7 +121,7 @@ public class ArticleCrawlingService {
                     String title = article.select(".headline").text().trim();
                     String url = article.select("a").attr("abs:href");
                     String pic = article.select(".article_body > .thumb > img").attr("src");
-                    String writer = article.select(".writer").text().replace("CBC노컷뉴스", "").replace("기자", "").trim();
+                    String writer = article.select(".writer").text().trim();
                     String date = article.select(".article_date").text().trim();
 
                     // URL 없거나 이미 저장된 기사 건너뜀
@@ -176,7 +138,7 @@ public class ArticleCrawlingService {
                     if (!filter.isValid(title, content)) continue;
 
                     // 저장
-                    saveToDb(title, url, content, "머니투데이", keyword, date, writer, pic);
+                    articleService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
 
                     count++; // 성공 카운터 1 증가
 
@@ -215,7 +177,7 @@ public class ArticleCrawlingService {
             // 기자 이름 가져오기
             Element writer = doc.selectFirst("li.email > a, a.a_reporter > strong");
             if (writer != null) {
-                String cleanWriter = writer.text().replace("기자", "").trim();
+                String cleanWriter = writer.text().replace("CBC노컷뉴스", "").replace("기자", "").trim();
                 result.put("writer", cleanWriter);
             }
 
@@ -225,28 +187,4 @@ public class ArticleCrawlingService {
 
         return result;
     }
-
-    // 4. 저장
-    private void saveToDb(String title, String url, String content, String siteName, String keyword, String date, String writer, String pic) {
-        // DB 글자 수 제한 지키기
-        String safeTitle = title.length() > 95 ? title.substring(0, 95) + "..." : title;
-        String safeSite = siteName.length() > 10 ? siteName.substring(0, 10) : siteName;
-        String safeDate = date.length() > 10 ? date.substring(0, 10) : date;
-        String safeWriter = writer.length() > 20 ? writer.substring(0, 20) : writer;
-        String safePic = pic.length() > 250 ? pic.substring(0, 250) : pic;
-
-        articleRepository.save(ArticleEntity.builder()
-                .articleTitle(safeTitle)
-                .articleUrl(url)
-                .articleContent(content)
-                .articleSite(safeSite)
-                .articleKeyword(keyword)
-                .articleDate(safeDate)
-                .articleWriter(safeWriter)
-                .articlePic(safePic)
-                .build());
-
-        System.out.println("저장 완료 [" + safeSite + "]: " + safeTitle);
-    }
-
 }
