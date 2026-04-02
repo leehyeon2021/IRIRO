@@ -31,18 +31,27 @@ public class ArticleCrimeFilter {
         }
 
         // 3. 서울 관련 기사인지 체크
-        boolean hasSeoul = content.contains("서울") || title.contains("서울");
+        boolean seoul = content.contains("서울") || title.contains("서울");
 
         // 4. 범죄 관련 기사인지 체크
-        boolean isCrime = false;
+        int crimeKeywordCount = 0;
         for (String keyword : crimeKeywords) {
-            if (content.contains(keyword) || title.contains(keyword)) {
-                isCrime = true;
-                break;
+            // 제목에 범죄 키워드 (+2)
+            if(title.contains(keyword)){
+                crimeKeywordCount +=2;
+            }
+            // 본문에 범죄 키워드 (+1)
+            if(content.contains(keyword)){
+                crimeKeywordCount +=1;
+            }
+
+            // 총점 3 이상이면 가져오기
+            if(crimeKeywordCount>=3){
+                return seoul;
             }
         }
 
         // 서울 관련이면서 범죄 관련이어야 통과
-        return hasSeoul && isCrime;
+        return false;
     }
 }

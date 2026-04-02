@@ -54,8 +54,8 @@ public class ArticleCrawler {
 
             for (WebElement article : articles) {
                 try{
-                    // 안전장치 1: 5개 다 채웠으면 반복문을 강제 종료
-                    if (count >= 10) {
+                    // 안전장치 1: 10개 다 채웠으면 반복문을 강제 종료
+                    if (count >= 1) {
                         System.out.println(count+"개 수집. 노컷뉴스 크롤링 종료.");
                         break;
                     }
@@ -117,8 +117,8 @@ public class ArticleCrawler {
             int count = 0; // 안전장치 1: 개수 세기
 
             for (Element article : articles) {
-                // 안전장치 2: 5개 다 채웠으면 반복문 강제 종료
-                if (count >= 10) {
+                // 안전장치 2: 10개 다 채웠으면 반복문 강제 종료
+                if (count >= 1) {
                     System.out.println(count+"개 수집. 머니투데이 크롤링 종료.");
                     break;
                 }
