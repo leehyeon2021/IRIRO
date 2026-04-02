@@ -3,7 +3,7 @@ package iriro.article.crawler;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import iriro.article.repository.ArticleRepository;
 import iriro.article.service.ArticleService;
-import iriro.article.util.CrimeNewsFilter;
+import iriro.article.util.ArticleCrimeFilter;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class ArticleCrawler {
 
     private final ArticleRepository articleRepository;
-    private final CrimeNewsFilter filter;
+    private final ArticleCrimeFilter filter;
     private final ArticleService articleService;
 
     // 1. 노컷뉴스 크롤러 (Selenium으로 목록 가져오기 -> Jsoup으로 본문 읽기)

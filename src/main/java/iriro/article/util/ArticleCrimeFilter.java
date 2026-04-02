@@ -3,7 +3,7 @@ package iriro.article.util;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CrimeNewsFilter {
+public class ArticleCrimeFilter {
 
     private static final String[] blackList = {
             "드라마", "출연", "방송", "연예", "화보", "영화", "공개", "웹툰", "매매가격", "비트코인",
