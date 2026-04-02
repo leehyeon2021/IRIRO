@@ -19,23 +19,35 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'             // 1. SpringBoot Web
-    runtimeOnly 'com.mysql:mysql-connector-j'                                        // 2. mySQL
-    compileOnly 'org.projectlombok:lombok'                                           // 3. Lombok
-    annotationProcessor 'org.projectlombok:lombok'                                   // 3. Lombok
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'           // 4. JPA
-    implementation 'org.jsoup:jsoup:1.21.2'                                          // 5. Jsoup
-    implementation 'org.seleniumhq.selenium:selenium-java:4.35.0'                    // 6. Selenium
-    implementation 'io.github.bonigarcia:webdrivermanager:6.3.1'                     // 7. Selenium
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'            // 8. HTTP요청 라이브러리
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.1'  // 9. XML 파싱
-    implementation 'org.springframework.security:spring-security-crypto:6.4.4'       // 10. 비크립트
-    implementation 'org.springframework.boot:spring-boot-starter-validation' // DTO유효성 검사
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'                // SpringBoot Web
+    runtimeOnly 'com.mysql:mysql-connector-j'                                           // mySQL
+    compileOnly 'org.projectlombok:lombok'                                              // Lombok
+    annotationProcessor 'org.projectlombok:lombok'                                      // Lombok
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'              // JPA
+    implementation 'org.jsoup:jsoup:1.21.2'                                             // Jsoup
+    implementation 'org.seleniumhq.selenium:selenium-java:4.35.0'                       // Selenium
+    implementation 'io.github.bonigarcia:webdrivermanager:6.3.1'                        // Selenium
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'               // HTTP요청 라이브러리
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.1'     // XML 파싱
+    implementation 'org.springframework.security:spring-security-crypto:6.4.4'          // 비크립트
+    implementation 'org.springframework.boot:spring-boot-starter-validation'            // DTO유효성 검사
+    implementation 'org.springframework.ai:spring-ai-google-genai-spring-boot-starter'  // Spring OpenAi
 
     // JWT 라이브러리
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+}
+
+// Spring AI 설정
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:1.0.0-M6"
+    }
 }
 
 tasks.named('test') {
