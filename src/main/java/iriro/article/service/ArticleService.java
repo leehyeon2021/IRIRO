@@ -1,45 +1,38 @@
 package iriro.article.service;
 
+import iriro.article.dto.ArticleDto;
 import iriro.article.entity.ArticleEntity;
 import iriro.article.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
     private final ArticleRepository articleRepository;
 
-    // 저장
-    public void saveToDb(String title, String url, String content, String siteName, String district, String keyword, String date, String writer, String pic) {
-
-        // URL 중복 체크
-        if (articleRepository.existsByArticleUrl(url)) {
-            System.out.println("이미 저장된 기사 건너뜀: " + title);
-            return;
-        }
-
-        // DB 글자 수 제한 지키기
-        String safeTitle = title.length() > 95 ? title.substring(0, 95) + "..." : title;
-        String safeSite = siteName.length() > 10 ? siteName.substring(0, 10) : siteName;
-        String safeDistrict = district.length() > 10 ? district.substring(0, 10) : district;
-        String safeDate = date.length() > 10 ? date.substring(0, 10) : date;
-        String safeWriter = writer.length() > 20 ? writer.substring(0, 20) : writer;
-        String safePic = pic.length() > 250 ? pic.substring(0, 250) : pic;
-
-        articleRepository.save(ArticleEntity.builder()
-                .articleTitle(safeTitle)
-                .articleUrl(url)
-                .articleContent(content)
-                .articleSite(safeSite)
-                .articleDistrict(safeDistrict)
-                .articleKeyword(keyword) // 추가 필요
-                .articleDate(safeDate)
-                .articleWriter(safeWriter)
-                .articlePic(safePic)
-                .build());
-
-        System.out.println("저장 완료 [" + safeSite + "]: " + safeTitle);
+    // 기사 전체 조회
+    public List<ArticleDto> getArticleFindAll(){
+        return articleRepository.findAll().stream()
+                .map(ArticleEntity::toDto)
+                .collect(Collectors.toList());
     }
+
+    // 기사 지역 선택 전체 조회
+    public List<ArticleDto> getArticleSearch(String articleDistrict){
+        return articleRepository.findByArticleDistrict(articleDistrict).stream()
+                .map(ArticleEntity::toDto).collect(Collectors.toList());
+    }
+
+    // 기사 개별 조회
+    public ArticleDto getArticleFindOne(int articleId){
+        return articleRepository.findById(articleId)
+                .map(ArticleEntity::toDto)
+                .orElse(null);
+    }
+
 
 }
