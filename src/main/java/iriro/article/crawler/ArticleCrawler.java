@@ -56,6 +56,10 @@ public class ArticleCrawler {
 
             for (WebElement article : articles) {
                 try{
+                    // 대기하기
+                    System.out.println("2.7초 대기");
+                    Thread.sleep(2700);
+
                     // n개 다 채웠으면 반복문을 강제 종료
                     if (count >= 1) {
                         System.out.println(count+"개 수집. 노컷뉴스 크롤링 종료.");
@@ -92,10 +96,6 @@ public class ArticleCrawler {
                     // 저장 성공 count 1 증가
                     count++;
 
-                    // 대기하기
-                    System.out.println("2.7초 대기");
-                    Thread.sleep(2700);
-
                 } catch (Exception e) {
                     System.out.println("개별 기사 파싱 중 오류 (건너뜀): " + e.getMessage());
                 }
@@ -125,6 +125,11 @@ public class ArticleCrawler {
 
             for (Element article : articles) {
                 try{
+
+                    // 대기하기
+                    System.out.println("2.7초 대기");
+                    Thread.sleep(2700);
+
                     // n개 다 채웠으면 반복문을 강제 종료
                     if (count >= 1) {
                         System.out.println(count+"개 수집. 머니투데이 크롤링 종료.");
@@ -154,10 +159,6 @@ public class ArticleCrawler {
                     articleSaveService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
                     // 저장 성공 count 1 증가
                     count++;
-
-                    // 대기하기
-                    System.out.println("2.7초 대기");
-                    Thread.sleep(2700);
 
                 }catch(Exception e){
                     System.out.println("[개별 기사 파싱 중 오류 (건너뜀)] " + e.getMessage());
