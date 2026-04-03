@@ -50,6 +50,7 @@ public class FacilitySafeEntity {
     public SafetyFacPointDto toSafetyFacPointDto(){
         return SafetyFacPointDto.builder()
                 .facType(facType)
+                .fac_name(facName)
                 .safeCount(facCount != null ? facCount : 0)
                 .latitude(facLat)
                 .longitude(facLng)
