@@ -2,7 +2,7 @@ package iriro.article.crawler;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import iriro.article.repository.ArticleRepository;
-import iriro.article.service.ArticleService;
+import iriro.article.service.ArticleSaveService;
 import iriro.article.util.ArticleCrimeFilter;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -30,7 +30,7 @@ public class ArticleCrawler {
 
     private final ArticleRepository articleRepository;
     private final ArticleCrimeFilter filter;
-    private final ArticleService articleService;
+    private final ArticleSaveService articleSaveService;
 
     // 1. 노컷뉴스 크롤러 (Selenium으로 목록 가져오기 -> Jsoup으로 본문 읽기)
     public void crawlNoCutNews(String keyword, String district) {
@@ -88,7 +88,7 @@ public class ArticleCrawler {
                     // 아니면 넘김
                     if(!isCrimeNews){continue;}
                     // 맞으면 저장
-                    articleService.saveToDb(title, url, content, "노컷뉴스", district, keyword, date, writer, pic);
+                    articleSaveService.saveToDb(title, url, content, "노컷뉴스", district, keyword, date, writer, pic);
                     // 저장 성공 count 1 증가
                     count++;
 
@@ -147,7 +147,7 @@ public class ArticleCrawler {
                     // 아니면 넘김
                     if(!isCrimeNews){continue;}
                     // 맞으면 저장
-                    articleService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
+                    articleSaveService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
                     // 저장 성공 count 1 증가
                     count++;
 
