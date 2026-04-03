@@ -19,5 +19,6 @@ public class ArticleDto {
     private String articlePic;
     private String articleSite;
     private String articleKeyword;
+    private String articleDistrict;
     private String articleCreatedAt;
 }
