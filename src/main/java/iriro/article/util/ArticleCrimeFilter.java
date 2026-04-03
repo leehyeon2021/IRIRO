@@ -13,16 +13,61 @@ public class ArticleCrimeFilter {
         this.chatClient = builder.build();
     }
 
+    private static final String[] blackList = {
+            "드라마", "출연", "방송", "연예", "화보", "영화", "공개", "웹툰", "매매가격", "비트코인",
+            "주가", "주식", "코스피", "증권", "부동산", "날씨", "스포츠", "박재홍의 한판승부",
+            "의원", "공천", "특혜", "청탁", "압수수색", "비자금", "선거", "정치", "국회", "기업",
+            "노조", "내사", "언론 탄압", "아이돌", "BTS", "NCT"
+    };
+    private static final String[] crimeKeywords = {
+            "강도", "절도", "폭행", "성범죄", "흉기", "묻지마", "살인", "상해",
+            "칼부림", "스토킹", "침입", "치안", "순찰", "우범", "안전"
+    };
+
     // 저장할 가치 있는 기사인지 판별
     public boolean isValid(String title, String content) {
 
-        // 필수값 체크
+        // === AI 호출 전 키워드 체크 ===
+
+        // 1. 필수값 체크
         if (title == null || content == null || title.isBlank() || content.isBlank()) {
             return false;
         }
 
+        // 2. 블랙리스트 체크 (제목에 가십 키워드 있으면 탈락)
+        for (String word : blackList) {
+            if (title.contains(word) || content.contains(word)) {
+                System.out.println("[블랙리스트 탈락] " + title);
+                return false;
+            }
+        }
+
+        // 3. 서울 관련 기사인지 체크
+        boolean hasSeoul = content.contains("서울") || title.contains("서울");
+        if (!hasSeoul) {
+            System.out.println("[서울 아님 탈락] " + title);
+            return false;
+        }
+
+        // 4. 범죄 관련 기사인지 체크
+        boolean hasCrimeKeywords = false;
+        for (String keyword : crimeKeywords) {
+            if (content.contains(keyword) || title.contains(keyword)) {
+                hasCrimeKeywords = true;
+                break;
+            }
+        }
+        if(!hasCrimeKeywords){
+            System.out.println("[범죄 키워드 없음 탈락] "+ title );
+            return false;
+        }
+
+        // === AI 호출 ===
+        System.out.println("[AI 호출] "+ title );
+
         // 본문 요약(토큰 절약)
-        String shortContent = content.length() > 500 ? content.substring(0, 500) : content;
+        String shortContent = content.length() > 500
+                               ? content.substring(0, 500) : content;
 
         // AI 프롬프트
         String prompt = """
@@ -54,6 +99,10 @@ public class ArticleCrimeFilter {
                     .trim();
 
             System.out.println("[AI 판별 결과] " + title + " -> " + aiResponse);
+
+            // 1분 무료 횟수 위해 대기
+            System.out.println("[AI 호출 후 5초 대기...]");
+            Thread.sleep(5000);
 
             // 답변 "TRUE"면 통과
             return aiResponse.contains("TRUE");

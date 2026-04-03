@@ -5,6 +5,7 @@ import iriro.publicData.service.FacilitySafeFetchService;
 import iriro.publicData.scheduler.RefreshAllScheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@CrossOrigin( value = "http://localhost:5173" , exposedHeaders = "Authorization")
 public class TestController {
     private final CrimeRoadFetchService cf;
     private final FacilitySafeFetchService ff;
