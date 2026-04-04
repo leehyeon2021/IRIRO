@@ -1,16 +1,34 @@
 package iriro.article.util;
 
-import org.springframework.ai.chat.client.ChatClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class ArticleCrimeFilter {
 
-    // 스프링AI: 제미나이 대화 클라이언트
-    private final ChatClient chatClient;
     // ChatClient 직접 빌드
-    public ArticleCrimeFilter(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
+    @Value("${cloudflare.account-id}")
+    private String apiKey;
+
+    private String url;
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 서버가 켜질 때 API KEY가 포함된 URL주소 생성
+    @PostConstruct
+    public void init() {
+        this.url = "https://generativelanguage.googleapis.com/v1beta" +
+                    "/models/gemini-2.5-flash:generateContent?key=" + apiKey;
     }
 
     private static final String[] blackList = {
@@ -24,6 +42,7 @@ public class ArticleCrimeFilter {
             "칼부림", "스토킹", "침입", "치안", "순찰", "우범", "안전"
     };
 
+
     // 저장할 가치 있는 기사인지 판별
     public boolean isValid(String title, String content) {
 
@@ -34,7 +53,7 @@ public class ArticleCrimeFilter {
             return false;
         }
 
-        // 2. 블랙리스트 체크 (제목에 가십 키워드 있으면 탈락)
+        // 2. 블랙리스트 체크
         for (String word : blackList) {
             if (title.contains(word) || content.contains(word)) {
                 System.out.println("[블랙리스트 탈락] " + title);
@@ -63,11 +82,11 @@ public class ArticleCrimeFilter {
         }
 
         // === AI 호출 ===
-        System.out.println("[AI 호출] "+ title );
 
-        // 본문 요약(토큰 절약)
-        String shortContent = content.length() > 500
-                               ? content.substring(0, 500) : content;
+        // 본문 요약(토큰 절약 및 특수문자 제거)
+        String shortContent = content.length() > 500 ? content.substring(0, 500) : content;
+        shortContent = shortContent.replace("\"", "'").replace("\n", " ");
+        String safeTitle = title.replace("\"", "'");
 
         // AI 프롬프트
         String prompt = """
@@ -89,28 +108,53 @@ public class ArticleCrimeFilter {
 
                 제목: %s
                 본문 요약: %s
-                """.formatted(title, shortContent);
+                """.formatted(safeTitle, shortContent);
+        /*String promptText = String.format(
+                "너는 서울 지역 시민 안전 뉴스 분류 AI야. 아래 기사가 '서울 시민의 안전과 직접 관련된 범죄/치안 뉴스'인지 판단해. " +
+                "반드시 'TRUE' 또는 'FALSE' 한 단어만 대답해. 제목: %s 본문: %s", safeTitle, shortContent
+            );*/
 
         // AI 답변 받기
         try {
-            String aiResponse = chatClient.prompt( prompt )
-                    .call()
-                    .content()
-                    .trim();
+            // 구글 Gemini API 규격에 맞는 JSON 바디 생성
+            Map<String, Object> body = Map.of(
+                    "contents", List.of(
+                            Map.of("parts", List.of(
+                                    Map.of("text", prompt)
+                            ))
+                    )
+            );
+            String requestJson = objectMapper.writeValueAsString(body);
 
-            System.out.println("[AI 판별 결과] " + title + " -> " + aiResponse);
+            System.out.println("[전송할 JSON]: " + requestJson);
+
+            // 3. 제미나이 api 호출
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
 
             // 1분 무료 횟수 위해 대기
-            System.out.println("[AI 호출 후 5초 대기...]");
-            Thread.sleep(5000);
+            System.out.println("[AI 호출 후 7초 대기...]");
+            Thread.sleep(7000);
 
-            // 답변 "TRUE"면 통과
-            return aiResponse.contains("TRUE");
+            // API 호출
+            String response = restTemplate.postForObject(url, entity, String.class);
 
+            // 결과 분석 (JSON에서 text 부분만 추출)
+            if (response != null) {
+                System.out.println("[AI 전체 응답 JSON]: " + response);
+                JsonNode root = objectMapper.readTree(response);
+                String aiAnswer = root.path("candidates").get(0)
+                        .path("content").path("parts").get(0)
+                        .path("text").asText().toUpperCase().trim();
+                System.out.println("[AI가 판단한 최종 답변]: " + aiAnswer);
+                return aiAnswer.contains("TRUE");
+            }
         } catch (Exception e) {
             // 통신 오류 (무료 한도 제한: 1분 15회)
-            System.out.println("AI 판별 오류(건너뜀): " + e.getMessage());
+            System.err.println("[AI 통신 단계 에러]: " + e.getMessage());
             return false;
         }
+        return false;
     }
 }
