@@ -4,21 +4,13 @@ package iriro.community.service;
 
 import iriro.community.dto.BoardDto;
 import iriro.community.entity.BoardEntity;
-import iriro.community.entity.UserEntity;
 import iriro.community.repository.BoardRepository;
 
 import iriro.community.repository.UserRepository;
-
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.swing.text.html.Option;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
