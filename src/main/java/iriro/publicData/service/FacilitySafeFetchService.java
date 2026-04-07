@@ -17,16 +17,22 @@ import java.util.*;
 public class FacilitySafeFetchService {
 
     // 안심지킴이집
-    @Value("${api.pub.service-key}") private String pubServiceKey;
-    @Value("${api.pub.safe-house.url}") private String safeHouseUrl;
+    @Value("${api.pub.service-key}")
+    private String pubServiceKey;
+    @Value("${api.pub.safe-house.url}")
+    private String safeHouseUrl;
 
     // 경찰서(치안안전시설) - 위도경도 없는 것 있음 - 지오코딩 필요
-    @Value("${api.admin.service-key}") private String adminServiceKey;
-    @Value("${api.admin.police.url}") private String policeUrl;
+    @Value("${api.admin.service-key}")
+    private String adminServiceKey;
+    @Value("${api.admin.police.url}")
+    private String policeUrl;
 
     // 안전시설물(보안등,CCTV,안전벨)
-    @Value("${api.seoul.service-key}") private String seoulServiceKey;
-    @Value("${api.seoul.safe-fac.url}") private String safeFacUrl;
+    @Value("${api.seoul.service-key}")
+    private String seoulServiceKey;
+    @Value("${api.seoul.safe-fac.url}")
+    private String safeFacUrl;
 
     private final WebClient webClient;
     private final FacilitySafeRepository fr;
@@ -37,18 +43,17 @@ public class FacilitySafeFetchService {
     public boolean fetchSafeHouse(){
         int numOfRows = 500;
         int totalCount = 0;
-        int totalPages = 1;     // numOfRows와 totalCount를 고려하여 페이지 넘김
+        int totalPages = 1;
 
         // 기존 데이터
         List<FacilitySafeEntity> oldList = fr.findByFacType("안심지킴이집");
         // 삭제 비교 위한 저장소
         Set<String> deleteCheck = new HashSet<>();
 
-        try{ // 전체 개수 찾기
+        try{
             for(int page=1;page<=totalPages;page++){
                 int pageNo = page;
-                // 서비스키 주소에 넣기
-                // 요청할 API 주소 넣기 webClient
+                // 쿼리 방식만 허용되는 API
                 Map<String,Object> response = webClient.get()
                         .uri(uriBuilder -> uriBuilder
                                 .path(safeHouseUrl)
@@ -143,6 +148,7 @@ public class FacilitySafeFetchService {
             for (int page = 1; page <= totalPages; page++) {
                 int pageNo = page;
 
+                // 쿼리 방식만 허용되는 API
                 Map<String, Object> response = webClient.get()
                         .uri(uriBuilder -> uriBuilder
                                 .path(policeUrl)
@@ -263,8 +269,7 @@ public class FacilitySafeFetchService {
                 // 끝 인덱스
                 int endIndex = page*numOfRows;
 
-                // 주소에 넣기
-                // 요청 API
+                // 쿼리 방식만 허용되는 API
                 Map<String,Object> response = webClient.get()
                         .uri(safeFacUrl+"/{key}/{type}/{service}/{start}/{end}",
                                 safeFacUrl, "json", "tbSafeReturnItem", startIndex, endIndex)

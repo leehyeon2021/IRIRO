@@ -51,7 +51,7 @@ public class CrimeRoadFetchService{
                         + "&numOfRows=" + numOfRows
                         + "&type=json";
 
-                // 요청할 API 주소 넣어주기
+                // 쿼리 방식만 허용되는 API
                 Map<String, Object> response = webClient.get()
                         .uri(uri)
                         .retrieve()
