@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin( value = "http://localhost:5173" , exposedHeaders = "Authorization")
 @RequiredArgsConstructor
 @RequestMapping("/api/board")
 public class BoardController {

@@ -9,9 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin( value = "http://localhost:5173" , exposedHeaders = "Authorization")
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+
 public class UserController {
 
     private final UserService userService;
