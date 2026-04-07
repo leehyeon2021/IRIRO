@@ -54,19 +54,11 @@ public class BoardService {
     }
 
     // 3. 리뷰 상세 조회
-    public BoardDto findById(Integer boardId) {
-        return boardRepository.findById(Long boardId){
+    public BoardDto findById( Integer boardId ){
             return boardRepository.findById(boardId) // .findById(pk번호) 개별엔티티조회
                     .orElse(null)
                     .toDto(); // 엔티티가 존재하면 dto로 변환
         }
-    }
-
-//    // 4. 리뷰 개별 수정
-//    @Transactional
-//    public BoardDto rvUpdate(Integer boardId, BoardDto boardDto, HttpServletRequest request){
-//        BoardEntity boardEntity = boardRepository.findByIdAndUserId(boardId,email)
-//    }
 
 
     // 5. 리뷰 개별 삭제 (회원)
