@@ -21,7 +21,7 @@ public class ArticleEntity extends BaseTime{
     private String articleTitle;
     @Column(length = 20)
     private String articleDate;
-    @Column(columnDefinition = "text")
+    @Column(length = 300)
     private String articleContent;
     @Column(columnDefinition = "text")
     private String articleUrl;
