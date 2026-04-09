@@ -32,6 +32,10 @@ public class ArticleCrawler {
     private final ArticleCrimeFilter filter;
     private final ArticleSaveService articleSaveService;
 
+    // 최대
+    private static final int maxCount = 10;
+    private static final int maxPage = 5;
+
     // 1. 노컷뉴스 크롤러 (Selenium으로 목록 가져오기 -> Jsoup으로 본문 읽기 -> Selenium으로 다음페이지 클릭)
     public void crawlNoCutNews(String keyword, String district) {
         WebDriverManager.chromedriver().setup();
@@ -46,27 +50,39 @@ public class ArticleCrawler {
             String searchUrl = "https://search.nocutnews.co.kr/list?query="
                                 + URLEncoder.encode(keyword, "UTF-8");
             driver.get(searchUrl);
-            //for(int page = 1; page <= 10; page++){
-                // 검색 결과 렌더링 대기
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".content > #news > .newslist")));
 
-                // 기사 목록 (1페이지)
+            // 페이지 넘기기
+            for(int page = 1; page <= maxPage; page++) {
+
+                // maxCount 달성 시 종료
+                if(totalCount >= maxCount) {
+                    System.out.println("[노컷뉴스] "+totalCount+"개 수집 완료: 종료");
+                    break;
+                }
+
+                try {
+                    // 검색 결과 렌더링 대기
+                    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".content > #news > .newslist")));
+                }catch (Exception e){
+                    System.out.println("[노컷뉴스] "+page+"페이지 로딩 실패: 종료");
+                    break;
+                }
+
+                // 현재 페이지 목록
                 List<WebElement> articles = driver.findElements(By.cssSelector(".newslist > li"));
+                if( articles.isEmpty() ){
+                    System.out.println("[노컷뉴스] 기사 없음: 종료");
+                    break;
+                }
 
-                // 기사 몇 개 가져왔는지 세기
-                int count = 0;
-
+                // 기사 하나
                 for (WebElement article : articles) {
                     try {
-                        // 대기하기
-                        System.out.println("2.7초 대기");
-                        Thread.sleep(2700);
+                        if(totalCount >= maxCount){ break; }
 
-                        // n개 다 채웠으면 반복문을 강제 종료
-                        if (count >= 10) {
-                            System.out.println(count + "개 수집. 노컷뉴스 크롤링 종료.");
-                            break;
-                        }
+                        // 대기
+                        System.out.println("[다음 기사 이동] 2.7초");
+                        Thread.sleep(2700);
 
                         String title = article.findElement(By.cssSelector("a > strong")).getText().trim();
                         String url = article.findElement(By.cssSelector("a")).getAttribute("href");
@@ -85,92 +101,121 @@ public class ArticleCrawler {
 
                         // 사회/문화 html 넘기기
                         if (writer.contains("메일보내기")) {
-                            System.out.println("다른 형식의 뉴스 건너뛰기: " + title);
+                            System.out.println("[다른 형식의 뉴스 (건너뜀)] " + title);
                             continue;
                         }
 
-                        // AI에게 묻고
-                        boolean isCrimeNews = filter.isValid(title, content);
-                        // 아니면 넘김
-                        if (!isCrimeNews) {
+                        // AI 묻고 아니면 넘김
+                        if (!filter.isValid(title, content)) {
                             continue;
                         }
                         // 맞으면 저장
                         articleSaveService.saveToDb(title, url, content, "노컷뉴스", district, keyword, date, writer, pic);
                         // 저장 성공 count 1 증가
-                        count++;
+                        totalCount++;
 
                     } catch (Exception e) {
-                        System.out.println("개별 기사 파싱 중 오류 (건너뜀): " + e.getMessage());
+                        System.out.println("[개별 기사 파싱 중 오류 (건너뜀)] " + e.getMessage());
                     }
-                }
-            //}
+                } // 기사 하나 end
+                if(totalCount >= maxCount){ break; }
+
+                // 다음 페이지 넘기기 (Selenium 직접클릭)
+                try{
+                    int nextPage = page + 1;
+                    WebElement nextBtn = driver.findElement(By.cssSelector("#cphBody_cphBody_pcPager a[title='"+nextPage+"']"));
+                    nextBtn.click();
+
+                    // 대기
+                    System.out.println("[다음 페이지 이동] 2.7초");
+                    Thread.sleep(2700);
+
+                }catch (Exception e){
+                    System.out.println("[노컷뉴스] 다음 페이지 없음: 종료");
+                    break;
+                } // 페이지 이동 end
+            } // 페이지 넘기기 end
         } catch (Exception e) {
-            System.out.println("노컷뉴스 오류: " + e.getMessage());
+            System.out.println("[노컷뉴스 전체 오류] " + e.getMessage());
         } finally {
             driver.quit();
         }
     }
 
-    // 2. 머니투데이 크롤러 (목록, 본문 전부 Jsoup)
+    // 2. 머니투데이 크롤러 (목록, 본문 전부 Jsoup -> &page=페이지 넘기기)
     public void crawlMtNews(String keyword, String district) {
+
+        int totalCount = 0;
+
         try {
-            String searchUrl = "https://www.mt.co.kr/search/news?filter=contents&order=latest&keyword="
-                            + URLEncoder.encode(keyword, "UTF-8");
+            // 페이지 넘기기
+            for(int page = 1; page <=maxPage; page++) {
 
-            Document doc = Jsoup.connect(searchUrl)
-                    .userAgent("Mozilla/5.0")
-                    .timeout(5000)
-                    .get();
-
-            Elements articles = doc.select(".article_item");
-
-            // 기사 몇 개 가져왔는지 세기
-            int count = 0;
-
-            for (Element article : articles) {
-                try{
-
-                    // 대기하기
-                    System.out.println("2.7초 대기");
-                    Thread.sleep(2700);
-
-                    // n개 다 채웠으면 반복문을 강제 종료
-                    if (count >= 10) {
-                        System.out.println(count+"개 수집. 머니투데이 크롤링 종료.");
-                        break;
-                    }
-
-                    String title = article.select(".headline").text().trim();
-                    String url = article.select("a").attr("abs:href");
-                    String pic = article.select(".article_body > .thumb > img").attr("src");
-                    String writer = article.select(".writer").text().replace(" 기자", "").trim();
-                    String date = article.select(".article_date").text().replace(".","-").trim();
-
-                    // URL 없거나 이미 저장된 기사 건너뜀
-                    if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
-                        continue;
-                    }
-
-                    // 상세 페이지 본문 정보
-                    Map<String, String> details = fetchArticleDetails(url);
-                    String content = details.get("content");
-
-                    // AI에게 묻고
-                    boolean isCrimeNews = filter.isValid(title, content);
-                    // 아니면 넘김
-                    if(!isCrimeNews){continue;}
-                    // 맞으면 저장
-                    articleSaveService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
-                    // 저장 성공 count 1 증가
-                    count++;
-
-                }catch(Exception e){
-                    System.out.println("[개별 기사 파싱 중 오류 (건너뜀)] " + e.getMessage());
+                if(totalCount >= maxCount) {
+                    System.out.println("[머니투데이] "+totalCount+"개 수집 완료");
+                    break;
                 }
-            }
+
+                String searchUrl = "https://www.mt.co.kr/search/news"
+                        + "?filter=contents"
+                        + "&order=latest"
+                        + "&keyword=" + URLEncoder.encode(keyword, "UTF-8")
+                        + "&page=" + page;
+
+                System.out.println("[머니투데이] "+page+" 페이지");
+
+                Document doc = Jsoup.connect(searchUrl)
+                        .userAgent("Mozilla/5.0")
+                        .timeout(5000)
+                        .get();
+
+                Elements articles = doc.select(".article_item");
+
+                if(articles.isEmpty()){
+                    System.out.println("[머니투데이] 기사 없음: 종료");
+                    break;
+                }
+
+                // 기사 하나
+                for (Element article : articles) {
+                    try {
+                        if(totalCount >= maxCount){ break; }
+
+                        // 대기
+                        System.out.println("[다음 기사 이동] 2.7초");
+                        Thread.sleep(2700);
+
+                        String title = article.select(".headline").text().trim();
+                        String url = article.select("a").attr("abs:href");
+                        String pic = article.select(".article_body > .thumb > img").attr("src");
+                        String writer = article.select(".writer").text().replace(" 기자", "").trim();
+                        String date = article.select(".article_date").text().replace(".", "-").trim();
+
+                        // URL 없거나 이미 저장된 기사 건너뜀
+                        if (title.isEmpty() || url.isEmpty() || articleRepository.existsByArticleUrl(url)) {
+                            continue;
+                        }
+
+                        // 상세 페이지 본문 정보
+                        Map<String, String> details = fetchArticleDetails(url);
+                        String content = details.get("content");
+
+                        // AI 묻고 아니면 넘김
+                        if (!filter.isValid(title, content)) {
+                            continue;
+                        }
+                        // 맞으면 저장
+                        articleSaveService.saveToDb(title, url, content, "머니투데이", district, keyword, date, writer, pic);
+                        // 저장 성공 count 1 증가
+                        totalCount++;
+
+                    } catch (Exception e) {
+                        System.out.println("[개별 기사 파싱 중 오류 (건너뜀)] " + e.getMessage());
+                    }
+                } // 기사 하나 end
+            } // 페이지 넘기기 end
         } catch (Exception e) {
-            System.out.println("머니투데이 오류: " + e.getMessage());
+            System.out.println("[머니투데이 전체 오류] " + e.getMessage());
         }
     }
 
