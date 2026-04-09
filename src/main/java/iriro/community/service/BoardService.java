@@ -7,6 +7,8 @@ import iriro.community.entity.BoardEntity;
 import iriro.community.repository.BoardRepository;
 
 import iriro.community.repository.UserRepository;
+import iriro.saferoute.entity.LocationlogEntity;
+import iriro.saferoute.repository.LocationLogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -20,6 +22,7 @@ import java.util.Optional;
 public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final LocationLogRepository locationLogRepository;
 
     // 1. 리뷰 등록 (회원만 가능)
     @Transactional
@@ -27,10 +30,16 @@ public class BoardService {
         // 비회원이면 글쓰기 거절
         if (loginEmail == null) return false;
 
+        LocationlogEntity log = locationLogRepository.findById(boardDto.getLogId()).orElse(null);
+
             return userRepository.findByEmail(loginEmail)
                     .map(userEntity -> {
                         BoardEntity saveEntity = boardDto.toEntity();
                         saveEntity.setUserEntity(userEntity);
+
+                        saveEntity.setLocationlogEntity(log);
+
+
                         return boardRepository.save(saveEntity).getBoardId() > 0;
                     })
                     .orElse(false);

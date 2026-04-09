@@ -35,7 +35,7 @@ public class BoardEntity extends BaseTime {
     private UserEntity userEntity;
 
     // 로그 번호
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
     @JoinColumn( name = "log_id")
     private LocationlogEntity locationlogEntity;
 

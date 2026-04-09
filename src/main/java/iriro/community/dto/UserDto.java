@@ -19,7 +19,7 @@ public class UserDto {
     private Integer userId; // 회원번호
     private String email; // 아이디(이메일)
     private String pwToken; // 비밀번호
-    private String nickName; // 닉네임
+    private String nickname; // 닉네임
     private String createAt; // 가입일
 
 
@@ -34,7 +34,7 @@ public class UserDto {
         return UserEntity.builder()
                 .email(this.email)
                 .pwToken(this.pwToken)
-                .nickname(this.nickName)
+                .nickname(this.nickname)
                 .build();
     }
 }

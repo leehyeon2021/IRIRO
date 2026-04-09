@@ -28,7 +28,7 @@ public class BoardDto {
                 .locationlogEntity(locationdummy) // logId만 들어있는 객체
                 .boardTitle(this.boardTitle)
                 .boardContent(this.boardContent)
-                .recommendCount(0) // 등록시 기본값 0
+                .recommendCount(0) // 등록시 기본값
                 .build();
     }
 }
