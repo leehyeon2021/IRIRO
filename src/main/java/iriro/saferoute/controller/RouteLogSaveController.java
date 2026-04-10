@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-@CrossOrigin( value = "http://localhost:5173") //도메인 허용 규칙
+@CrossOrigin( value = "http://localhost:5173", allowCredentials = "true") //도메인 허용 규칙
 public class RouteLogSaveController {
     // 사용자가 후기를 남겨주면 로그를 저장하는 컨트롤러
     private final RouteLogSaveService routeLogSaveSvc;
@@ -21,6 +21,7 @@ public class RouteLogSaveController {
     public ResponseEntity<?> saveRating(
             @CookieValue(name = "logId") Long logId,
             @Valid @RequestBody RouteRatingRequestDto routeRatingRequest){
+        System.out.println(logId + "  \n  " + routeRatingRequest);
         routeLogSaveSvc.updateLogRating(logId, routeRatingRequest);
         return ResponseEntity.ok( true );
     }
