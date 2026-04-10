@@ -10,7 +10,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.net.http.HttpClient;
 import java.util.*;
 
 @Service
@@ -59,8 +58,8 @@ public class FacilitySafeFetchService {
                         .uri(uriBuilder -> uriBuilder
                                 .path(safeHouseUrl)
                                 .queryParam("serviceKey",pubServiceKey)
-                                .queryParam("pageNo",pageNo)
-                                .queryParam("numOfRows",numOfRows)
+                                .queryParam("pageNo", pageNo)
+                                .queryParam("numOfRows", numOfRows)
                                 .queryParam("type","JSON")
                                 .queryParam("ctprvnNm","서울특별시")
                                 .build()
@@ -149,15 +148,21 @@ public class FacilitySafeFetchService {
             for (int page = 1; page <= totalPages; page++) {
                 int pageNo = page;
 
+                String uri = "https://safemap.go.kr/openapi2/IF_0036" + "?serviceKey=" + adminServiceKey
+                        + "&pageNo=" + page
+                        + "&numOfRows=" + numOfRows
+                        + "&returnType=json";
+
                 // 쿼리 방식만 허용되는 API
                 Map<String, Object> response = webClient.get()
-                        .uri(uriBuilder -> uriBuilder
-                                .path(policeUrl)
-                                .queryParam("serviceKey", adminServiceKey)
-                                .queryParam("pageNo", pageNo)
-                                .queryParam("numOfRows",numOfRows)
-                                .queryParam("returnType","json")
-                                .build())
+//                        .uri(uriBuilder -> uriBuilder
+//                                .path(policeUrl)
+//                                .queryParam("serviceKey", adminServiceKey)
+//                                .queryParam("pageNo", pageNo) // ❓
+//                                .queryParam("numOfRows",numOfRows)
+//                                .queryParam("returnType","json")
+//                                .build())
+                        .uri(uri)
                         .retrieve()
                         .bodyToMono(new ParameterizedTypeReference<Map<String,Object>>() {})
                         .block();
