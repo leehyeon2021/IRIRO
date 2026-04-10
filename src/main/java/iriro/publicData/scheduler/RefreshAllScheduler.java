@@ -3,6 +3,7 @@ package iriro.publicData.scheduler;
 import iriro.publicData.service.CrimeRoadFetchService;
 import iriro.publicData.service.FacilitySafeFetchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +13,7 @@ public class RefreshAllScheduler {
     private final CrimeRoadFetchService cfs;
 
     // 전체 삭제 후 새 데이터로 교체
-    //@Scheduled(cron = "0 0 1 1 * *")  // 매월 1일 새벽 2시
+    @Scheduled(cron = "0 0 1 1 * *")  // 매월 1일 새벽 2시
     public boolean refreshAllData() {
 
         boolean isPoliceUpdated = ffs.fetchPoliceStation();
