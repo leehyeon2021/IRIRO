@@ -12,7 +12,7 @@ public class RefreshAllScheduler {
     private final FacilitySafeFetchService ffs;
     private final CrimeRoadFetchService cfs;
 
-    // 전체 삭제 후 새 데이터로 교체
+    // 전체 업데이트 (불필요 데이터 삭제 + 수정되었거나 없는 데이터 추가 )
     @Scheduled(cron = "0 0 1 1 * *")  // 매월 1일 새벽 2시
     public boolean refreshAllData() {
 
