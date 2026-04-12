@@ -33,7 +33,7 @@ public class ArticleCrawler {
     private final ArticleCrimeFilter filter;
     private final ArticleSaveService articleSaveService;
 
-    // 최대 개수 조절
+    // 설정값
     private static final int maxCount = 10;
     private static final int maxPage = 5;
     private static final String[] year = {"2026", "2025"};
