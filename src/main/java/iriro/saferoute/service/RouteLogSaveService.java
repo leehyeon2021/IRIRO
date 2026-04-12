@@ -12,7 +12,6 @@ import iriro.saferoute.repository.RoutePointLogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,7 +32,7 @@ public class RouteLogSaveService {
     // 로그 저장 함수
     public Long saveRouteLog(SafeRouteResponseDto safeRouteResponse, String email ){
 
-        RouteResponseDto originRoute = safeRouteResponse.getDetourRoute();
+        RouteResponseDto originRoute = safeRouteResponse.getSelectedRoute();
         int safety_score = safeRouteResponse.getSafety_score();
 
         // SaveLogDto로 변환
