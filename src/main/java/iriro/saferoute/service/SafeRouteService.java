@@ -10,177 +10,232 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class SafeRouteService {
-    private static final double MAX_DETOUR_RATIO = 1.20; // 늘어난 비율이 20%가 넘으면
-    private static final int BASE_SAFE_SCORE = 100;
 
-    private final TmapRouteService tmapRouteSvc; // TmapAPI 사용 서비스
-    private final RiskFilterService riskFilterSvc; // 위험 지역 필터 서비스
-    private final SafeFacFilterService safeFacFilterSvc; // 안전 지역 필터 서비스
-    private final DetourRouteService detourRouteSvc; // 우회 경로 서비스
-    private final RouteLogSaveService routeLogSaveSvc;
+    private static final double BBOX_MARGIN_METER = 300.0; // BBox 여유 반경
+    private static final double MAX_DETOUR_RATIO = 1.50; // 기본 경로 대비 허용 가능한 최대 우회 비율
+
+    private static final double SOFT_BAND_M = 40.0; // 위험 반경 바깥쪽의 완충 구간 거리(경고 구역)
+    private static final double SOFT_PEAK = 0.35; // 위험 노출을 얼마나 줄여 반영할지 결정(경고 구간에서는 0.35배 정도)
+    private static final double EXPOSURE_TO_POINTS = 2.6; // 위험 노출을 실제 점수 차감 포인트로 바꾸는 계수
+    private static final int MAX_RISK_DEDUCTION = 88; // 위험으로 인한 최대 차감 한도
+    private static final int MAX_FACILITY_BONUS = 8; // 안전시설 보너스 최대치
+
+    private final TmapRouteService tmapRouteSvc;
+    private final CandidateRouteService candidateRouteSvc;
+    private final SafeFacFilterService safeFacFilterSvc;
+    private final GeoFilterService geoFilterSvc;
+    private final RiskFilterService riskFilterSvc;
     private final CrimeRoadRepository crimeRoadRepo;
     private final FacilitySafeRepository facilitySafeRepo;
 
-    // boundingBox를 만드는 함수 .. 1차 필터링
-    public BboxDto createBox(List<RoutePointDto> routePoints){
+    // 안전 경로 반환 함수
+    public SafeRouteResponseDto getSafeRoute(RouteRequestDto req) {
 
-        // 만약 리스트가 비어있다면
-        if( routePoints == null || routePoints.isEmpty()){
-            System.out.println("경로 좌표가 비어있습니다.");
-            return null;
-        }
+        RouteResponseDto baseRoute = tmapRouteSvc.getPedestrianRoute(req); // 기본 경로 조회
+        BboxDto bbox = createBox(baseRoute.getRoutePoints(), req); // bbox 계산
 
-        double minLat = routePoints.get(0).getLatitude();
-        double maxLat = routePoints.get(0).getLatitude();
-        double minLng = routePoints.get(0).getLatitude();
-        double maxLng = routePoints.get(0).getLatitude();
+        // bbox내 안전시설 조회
+        List<SafetyFacPointDto> allSafety = facilitySafeRepo
+                .findAllInBoundingBox(
+                        BigDecimal.valueOf(bbox.getMinLat()), BigDecimal.valueOf(bbox.getMaxLat()),
+                        BigDecimal.valueOf(bbox.getMinLng()), BigDecimal.valueOf(bbox.getMaxLng()))
+                .stream().map(FacilitySafeEntity::toSafetyFacPointDto).toList();
 
-        // 가장 크고 작은 위 경도 값 구하기
-        for(RoutePointDto point : routePoints){
-            minLat = Math.min(minLat, point.getLatitude() );
-            minLng = Math.min(minLng, point.getLongitude() );
-            maxLat = Math.max(maxLat, point.getLatitude() );
-            maxLng = Math.max(maxLng, point.getLongitude() );
-        }
+        // bbox내 위험시설 조회
+        List<RiskPointDto> allDanger = crimeRoadRepo
+                .findAllInBoundingBox(
+                        BigDecimal.valueOf(bbox.getMinLat()), BigDecimal.valueOf(bbox.getMaxLat()),
+                        BigDecimal.valueOf(bbox.getMinLng()), BigDecimal.valueOf(bbox.getMaxLng()))
+                .stream().map(CrimeRoadEntity::toRiskPointDto).toList();
 
-        // 50m 정도 margin
-        double latMargin = 50.0 / 111000.0;
-        double centerLat = (minLat + maxLat) / 2.0;
-        double lngMargin = 50.0 / (111000.0 * Math.cos(Math.toRadians(centerLat)));
+        log.info("BBox 조회 - 안전시설={} 위험지점={}", allSafety.size(), allDanger.size());
 
-        // BboxDto 반환(위험구역)
-        return new BboxDto(
-                minLat - latMargin,
-                maxLat + latMargin,
-                minLng - lngMargin,
-                maxLng + lngMargin
-        );
-    }
+        // 후보 경로 생성
+        List<RouteResponseDto> candidates = candidateRouteSvc.generateCandidates(req, allDanger, baseRoute);
+        int baseDist = Math.max(1, candidates.get(0).getTotalDistance()); // 기본 거리
 
+        // 각 후보의 위험노출/거리비 로그 출력
+        logCandidateTable(candidates, allDanger, baseDist);
 
+        // 후보들 중 최종 선택
+        RouteResponseDto best = pickLowestExposure(candidates, allDanger, baseDist);
 
-    // 빌드하여 응답객체를 반환
-    private SafeRouteResponseDto buildResponse(RouteResponseDto route, RouteResponseDto originRoute, int safetyScore){
+        // 최종 선택 경로의 안전시설 보너스 계산
+        int facRaw = facilityRawScore(best.getRoutePoints(), allSafety);
+        double exp = computeExposure(best.getRoutePoints(), allDanger);
+        int score = toDisplayScore(exp, facRaw);
+
+        // 로그
+        log.info("[ 최종 선택: {} | 거리={}m 예상시간={}s | 위험노출={} | 안전점수={} ]",
+                labelForIndex(candidates, best),
+                best.getTotalDistance(),
+                best.getTotalTime() != null ? best.getTotalTime() : -1,
+                String.format("%.2f", exp),
+                score);
+
         return SafeRouteResponseDto.builder()
-                .detourRoute(route)
-                .safety_score(safetyScore)
+                .selectedRoute(best)
+                .safety_score(score)
                 .build();
     }
 
-    // 안전 경로 계산 함수
-    public SafeRouteResponseDto getSafeRoute(RouteRequestDto routeRequestDto){
-
-        int safety_score;
-        // (출발지 위/경도, 목적지 위/경도, 경로 배열, 총걸린 시간, 총 거리)를 반환
-        RouteResponseDto originRoute = tmapRouteSvc.getPedestrianRoute(routeRequestDto); // 경로 생성 API 1번 호출
-        List<RoutePointDto> routePoints = originRoute.getRoutePoints(); // 기존 안내 경로
-        // 위험 지역을 DB에서 조사해 1차 필터링을 거친 값들만 리스트로 변환하여 가져옴. --> 추후 JPA활용하여 처리
-
-        BboxDto bbox = createBox(routePoints);
-        // DB에서 안전과 위험 경로 가져오기(경로의 범위 안)
-        List<SafetyFacPointDto> allSafetyPoints = facilitySafeRepo.findAllInBoundingBox(
-                BigDecimal.valueOf(bbox.getMinLat()), BigDecimal.valueOf(bbox.getMaxLat()),
-                BigDecimal.valueOf(bbox.getMinLng()), BigDecimal.valueOf(bbox.getMaxLng()))
-                .stream().map(FacilitySafeEntity::toSafetyFacPointDto).toList(); // 해당 엔티티를 SafetyFacPoint로 변경
-
-        List<RiskPointDto> allDangerPoints = crimeRoadRepo.findAllInBoundingBox(
-                BigDecimal.valueOf(bbox.getMinLat()), BigDecimal.valueOf(bbox.getMaxLat()),
-                BigDecimal.valueOf(bbox.getMinLng()), BigDecimal.valueOf(bbox.getMaxLng()))
-                .stream().map(CrimeRoadEntity::toRiskPointDto).toList();
-
-        System.out.println("안전시설물Dto: " + allSafetyPoints);
-        System.out.println("위험Dto: " + allDangerPoints);
-
-        List<RiskPointDto> riskFilterList = riskFilterSvc.filterDangerPoints(routePoints , allDangerPoints);
-        // 만약 필터링 된 위험리스트가 비어있으면 기존 경로 안전점수 계산 후 반환
-        if( riskFilterList.isEmpty()){
-            System.out.println("위험리스트가 비어있습니다. 기존경로를 반환합니다.");
-            // 기존 경로 안전 점수
-            safety_score = calcSafetyScore(routePoints, allSafetyPoints, allDangerPoints);
-            return buildResponse(originRoute, originRoute, safety_score); // 1차 기본경로 리턴
+    // 로그를 위한 라벨 생성
+    private String labelForIndex(List<RouteResponseDto> candidates, RouteResponseDto route) {
+        int i = candidates.indexOf(route);
+        if (i <= 0) {
+            return "기본 경로(TMAP 보행)";
         }
 
-        // 우회 경유지 목록 생성
-        List<DetourWayPointDto> detourPoints = detourRouteSvc.getDetourWayPoints(routePoints, riskFilterList);
+        return "우회 경로(다중경유)";
+    }
 
-        // 우회 경유지가 없다면 기본 경로 반환
-        if(detourPoints.isEmpty()){
-            System.out.println("우회한 경유지가 없습니다. 기본 경로를 반환합니다.");
-            safety_score = calcSafetyScore(routePoints, allSafetyPoints, allDangerPoints);
-            return buildResponse(originRoute, originRoute, safety_score); // 2차 기본 경로 리턴
+    // 후보 비교 로그 출력
+    private void logCandidateTable(List<RouteResponseDto> candidates, List<RiskPointDto> allDanger, int baseDist) {
+        log.info("========== 안전 경로 후보 비교 ==========");
+        for (int idx = 0; idx < candidates.size(); idx++) {
+            RouteResponseDto r = candidates.get(idx);
+            List<RoutePointDto> pts = r.getRoutePoints();
+            double exposure = computeExposure(pts, allDanger);
+            double ratio = (double) r.getTotalDistance() / (double) baseDist;
+            int nPts = pts != null ? pts.size() : 0;
+            Integer tt = r.getTotalTime();
+            log.info(
+                    "[#{}] {} | 거리={}m 예상시간={}s 꼭짓점={}개 | 위험노출={} | 기준대비거리={}",
+                    idx,
+                    idx == 0 ? "기본 경로(TMAP 보행)" : "우회 경로(다중경유)",
+                    r.getTotalDistance(),
+                    tt != null ? tt : -1,
+                    nPts,
+                    String.format("%.3f", exposure),
+                    String.format("%.3f", ratio));
         }
+        log.info("========================================");
+    }
 
-        RouteResponseDto detourRoute = tmapRouteSvc.getDetourRoute(routeRequestDto, detourPoints); // ++추가 TmapAPI 호출
+    // 최종 경로 선택
+    private RouteResponseDto pickLowestExposure(
+            List<RouteResponseDto> candidates,
+            List<RiskPointDto> allDanger,
+            int baseDist) {
 
-        System.out.println("우회 경유지 목록: " + Arrays.deepToString(detourPoints.toArray()));
-        System.out.println("우회 경유지 크기: " + detourPoints.size() );
-        System.out.println("기존 경로 총 시간: " + originRoute.getTotalTime());
-        System.out.println("기존 경로 총 거리: " + originRoute.getTotalDistance());
-        System.out.println("우회 경로 총 시간: " + detourRoute.getTotalTime());
-        System.out.println("우회 경로 총 거리: " + detourRoute.getTotalDistance());
+        RouteResponseDto bestOk = null;
+        double expOk = Double.MAX_VALUE;
 
-        double detourRatio = (double)detourRoute.getTotalDistance() / originRoute.getTotalDistance();
-        // 우회 경유지가 기존 경로보다 1.2배 길다면
-        if(  detourRatio > MAX_DETOUR_RATIO ){
-            // 위험경로를 한 번만 우회하는 경로 생성
-            DetourWayPointDto singleWayPoint = detourRouteSvc.createSingleDetourWayPoint(routePoints, riskFilterList.get(0) );
-            RouteResponseDto singleDetourRoute = tmapRouteSvc.getDetourRoute(routeRequestDto, List.of(singleWayPoint)); // 싱글 우회경로 생성
+        RouteResponseDto bestAny = null;
+        double expAny = Double.MAX_VALUE;
 
-            // 한 번 더 우회했지만 비율이 여전히 20%가 넘으면 기본 경로로 반환
-            double detourRatio2 = (double)singleDetourRoute.getTotalDistance() / originRoute.getTotalDistance();
-            if( detourRatio2 > MAX_DETOUR_RATIO){
-                System.out.println("한 번 더 우회했지만 거리가 멉니다. 기본경로를 반환합니다.");
-                safety_score = calcSafetyScore(routePoints, allSafetyPoints, allDangerPoints);
-                return buildResponse(originRoute, originRoute, safety_score); // 3차 기본 경로 리턴
+        // 후보들의 위험 노출도 계산
+        for (RouteResponseDto c : candidates) {
+            List<RoutePointDto> pts = c.getRoutePoints();
+            double ex = computeExposure(pts, allDanger);
+            double ratio = (double) c.getTotalDistance() / (double) baseDist; // 기본경로와의 거리 비율
+
+            if (bestAny == null || ex < expAny - 1e-9
+                    || (Math.abs(ex - expAny) < 1e-9 && c.getTotalDistance() < bestAny.getTotalDistance())) {
+                expAny = ex;
+                bestAny = c;
             }
-
-            // 싱글 경유지 우회 경로 안전 점수
-            safety_score = calcSafetyScore(singleDetourRoute.getRoutePoints(), allSafetyPoints, allDangerPoints);
-            return buildResponse(singleDetourRoute, originRoute, safety_score); // 4차 단일 우회경로 리턴
+            if (ratio <= MAX_DETOUR_RATIO) { // 만약 1.5배가 안 넘으면
+                if (bestOk == null || ex < expOk - 1e-9
+                        || (Math.abs(ex - expOk) < 1e-9 && c.getTotalDistance() < bestOk.getTotalDistance())) {
+                    expOk = ex;
+                    bestOk = c;
+                }
+            }
         }
 
+        if (bestOk != null) {
+            log.info("선택 규칙: 거리비≤{} 이면서 위험노출 최소", MAX_DETOUR_RATIO);
+            return bestOk;
+        }
+        log.warn("거리비 {} 초과만 가능 → 위험노출 최소 후보로 대체", MAX_DETOUR_RATIO);
 
-        // 여러 경유지 우회 경로 안전 점수
-        safety_score = calcSafetyScore(detourRoute.getRoutePoints(), allSafetyPoints, allDangerPoints );
-        return buildResponse(detourRoute, originRoute, safety_score); // 5차 우회 경로 리턴
+        return bestAny != null ? bestAny : candidates.get(0);
     }
 
-    // 안전 점수 계산 로직: 경로(우회경로 or 기본 경로) 상의 위험지역 개수와 안전시설물의 개수를 따진다. 안전시설물은 어떤 안전시설물인지에 따라 차등을 다르게 둔다.
-    private int calcSafetyScore( List<RoutePointDto> routePoints, List<SafetyFacPointDto> allSafetyFacPoints, List<RiskPointDto> allDangerPoints ){
+    // 위험 노출도를 합산하여 반환하는 함수
+    private double computeExposure(List<RoutePointDto> polyline, List<RiskPointDto> dangers) {
+        if (polyline == null || polyline.size() < 2 || dangers == null || dangers.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0.0;
+        for (RiskPointDto r : dangers) {
+            if (r.getLatitude() == null || r.getLongitude() == null) {
+                continue;
+            }
+            double d = geoFilterSvc.getMinDistance(polyline, r.getLatitude(), r.getLongitude());
+            double hardR = riskFilterSvc.getDangerRadius(r.getRoadType());
+            int w = Math.max(1, r.getRiskCount());
+            if (d <= hardR) {
+                total += w * (1.0 - d / Math.max(hardR, 1e-3));
+            } else if (d <= hardR + SOFT_BAND_M) {
+                double t = (d - hardR) / SOFT_BAND_M;
+                total += w * SOFT_PEAK * (1.0 - t);
+            }
+        }
 
-        // 경로에 대해서 안전 시설물과 위험시설물 필터링
-        List<SafetyFacPointDto> safetyFacPoints = safeFacFilterSvc.filterSafetyFacPoints(routePoints, allSafetyFacPoints);
-        List<RiskPointDto> riskPoints = riskFilterSvc.filterDangerPoints(routePoints, allDangerPoints);
-
-        System.out.println("우회한 경로의 안전시설물Dto: " + safetyFacPoints);
-        System.out.println("우회한 경로의 위험Dto: " + riskPoints);
-
-        // 각 위치들의 개수 합치기 (안전 시설물은 CCTV/보안등, 경찰서, 안전지킴이집, 안전벨
-        int safeCount = safetyFacPoints.stream().mapToInt(safeFac -> getFacScore(safeFac.getFacType()) * safeFac.getSafeCount() ).sum();
-        int riskCount = riskPoints.stream().mapToInt(RiskPointDto::getRiskCount).sum() * -7;
-
-        System.out.println("안전점수(보안등1점, CCTV/안전벨2점, 안전지킴이집4점, 경찰서5점): " + safeCount);
-        System.out.println("위험점수(위험경로당-7점): " + riskCount);
-        System.out.println("안전점수(기본점수 100점): " + (BASE_SAFE_SCORE + safeCount + riskCount));
-
-        return BASE_SAFE_SCORE + safeCount + riskCount;
+        return total;
     }
 
-    private int getFacScore(String FacType) {
-        return switch (FacType) {
-            case "보안등" -> 1; // 제일 낮음, 강제성 없음
-            case "CCTV", "안전벨" -> 2; // 억제력 있음, 고장 있을 수 있음
-            case "안전지킴이집" -> 4; // 도움을 요청할 사람이 존재함
-            case "경찰서" -> 5; // 가장 강력하게 도움이 되는 사람이 존쟇ㅁ.
+    // 내부의 계산값을 0~100점 사이로 바꾸는 함수.
+    private int toDisplayScore(double exposure, int facilityRawSum) {
+        int fac = Math.min(MAX_FACILITY_BONUS, facilityRawSum / 4); // 안전 시설 보너스
+
+        // 위험 차감 계산
+        int d = (int) Math.ceil(exposure * EXPOSURE_TO_POINTS);
+        d = Math.min(MAX_RISK_DEDUCTION, d);
+
+        return Math.max(0, Math.min(100, 100 - d + fac));
+    }
+
+    // 안전 시설 보너스 계산
+    private int facilityRawScore(List<RoutePointDto> routePoints, List<SafetyFacPointDto> allSafety) {
+        List<SafetyFacPointDto> near = safeFacFilterSvc.filterSafetyFacPoints(routePoints, allSafety);
+
+        return near.stream()
+                .mapToInt(p -> getFacScore(p.getFacType()) * Math.max(p.getSafeCount(), 1))
+                .sum();
+    }
+
+    // 안전 시설물 가중치
+    private int getFacScore(String t) {
+        if (t == null) {
+            return 0;
+        }
+
+        return switch (t) {
+            case "보안등" -> 1;
+            case "CCTV", "안전벨" -> 2;
+            case "안전지킴이집" -> 4;
+            case "경찰서" -> 5;
             default -> 0;
         };
     }
 
+    // bbox 생성
+    private BboxDto createBox(List<RoutePointDto> routePoints, RouteRequestDto req) {
+        double minLat = Math.min(req.getStartLat(), req.getEndLat());
+        double maxLat = Math.max(req.getStartLat(), req.getEndLat());
+        double minLng = Math.min(req.getStartLng(), req.getEndLng());
+        double maxLng = Math.max(req.getStartLng(), req.getEndLng());
+        if (routePoints != null) {
+            for (RoutePointDto p : routePoints) {
+                minLat = Math.min(minLat, p.getLatitude());
+                maxLat = Math.max(maxLat, p.getLatitude());
+                minLng = Math.min(minLng, p.getLongitude());
+                maxLng = Math.max(maxLng, p.getLongitude());
+            }
+        }
+        double cLat = (minLat + maxLat) / 2.0;
+        double latM = BBOX_MARGIN_METER / 111000.0;
+        double lngM = BBOX_MARGIN_METER / (111000.0 * Math.cos(Math.toRadians(cLat)));
+
+        return new BboxDto(minLat - latM, maxLat + latM, minLng - lngM, maxLng + lngM);
+    }
 }
