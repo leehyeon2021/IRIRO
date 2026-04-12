@@ -10,15 +10,4 @@ public class SafeRouteResponseDto {
     private RouteResponseDto selectedRoute; // 선택된 최종경로
     private Integer safety_score; //안전 점수
     private Long logId; // 저장된 로그 id 반환
-
-//    public SaveLogDto toSaveLogDto(){
-//        return SaveLogDto.builder()
-//                .startLatitude()
-//                .startLongitude()
-//                .endLatitude()
-//                .endLongitude()
-//                .safetyScore()
-//                .createdAt()
-//                .build();
-//    }
 }
