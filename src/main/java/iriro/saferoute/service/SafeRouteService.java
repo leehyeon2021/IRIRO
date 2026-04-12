@@ -79,8 +79,6 @@ public class SafeRouteService {
                 String.format("%.2f", exp),
                 score);
 
-        System.out.println(best);
-
         return SafeRouteResponseDto.builder()
                 .selectedRoute(best)
                 .safety_score(score)
