@@ -2,6 +2,8 @@ package iriro.article.service;
 
 import iriro.article.entity.ArticleEntity;
 import iriro.article.repository.ArticleRepository;
+import kr.co.shineware.nlp.komoran.constant.DEFAULT_MODEL;
+import kr.co.shineware.nlp.komoran.core.Komoran;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ArticleSaveService {
     private final ArticleRepository articleRepository;
+
+    // Komoran 초기화 (서버 시작 시 한 번만 생성)
+    private final Komoran komoran = new Komoran(DEFAULT_MODEL.FULL);
+
 
     // 저장
     public void saveToDb(String title, String url, String content, String siteName, String district, String keyword, String date, String writer, String pic) {
@@ -24,8 +30,8 @@ public class ArticleSaveService {
         }
 
         // 2. 키워드 유사도 중복 체크 (자카드 유사도)
-        // 1) 키워드 추출
-        String extractedKeyword = extractedKeywords(title, content);
+        // 1) 형태소 분석으로 키워드 추출 (Jaccard → Komoran으로 교체)
+        String extractedKeyword = extractNouns(title, content);
         // 2) 최근 파일 가져와서
         List<ArticleEntity> recentArticles =
                 articleRepository.findTop20ByArticleDistrictOrderByArticleCreatedAtDesc(district);
@@ -61,20 +67,20 @@ public class ArticleSaveService {
         System.out.println("저장 완료 [" + safeSite + "]: " + safeTitle);
     }
 
-    // 중복 제거: 자카드 방식 사용 (단어 빈도수)
-    // 키워드 추출
-    private String extractedKeywords(String title, String content){
+    // 중복 제거: Komoran 형태소 분석
+    // 명사만 추출
+    private String extractNouns(String title, String content){
         // 500자만 검사
         String combined = title+" "+title+" "+title+" "+content;
         String shortened = combined.length() > 500 ? combined.substring(0 , 500) : combined;
 
-        // 특수문자 제거, 공백 분리
-        String[] words = shortened.replaceAll("[^가-힣a-zA-Z0-9\\s]", "").split("\\s+");
+        // 명사 추출 (NNP: 고유명사, NNG: 일반명사)
+        List<String> nouns = komoran.analyze(shortened).getNouns();
 
         // 단어 빈도수 계산 (두 자 이상)
-        Map<String, Long> freq = Arrays.stream(words)
-                .filter(w -> w.length() >= 2)
-                .collect(Collectors.groupingBy(w -> w , Collectors.counting()));
+        Map<String, Long> freq = nouns.stream()
+                .filter(n -> n.length() >= 2)
+                .collect(Collectors.groupingBy(n -> n, Collectors.counting()));
 
         // 단어 빈도수 높은 순으로 상위 10개 (내림차순
         return freq.entrySet().stream()
@@ -104,7 +110,7 @@ public class ArticleSaveService {
 
         // 교집합 나누기 합집합
         double similarity = (double) intersection.size() / union.size();
-        System.out.println("[유사도] "+keyword1+" , "+keyword2+" => "+similarity);
+        System.out.println("[유사도] ["+keyword1+"] , ["+keyword2+"] => "+similarity);
 
         // 50% 넘으면 중복 처리
         return similarity >= 0.5;
