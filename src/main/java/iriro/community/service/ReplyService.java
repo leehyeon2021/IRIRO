@@ -56,11 +56,11 @@ public class ReplyService {
         return true;
     }
 
-    // 3. 댓글 전체 조회
-    public List<ReplyDto> findAll() {
-        return replyRepository.findAll(Sort.by(Sort.Direction.DESC, "replyId"))
+    // 3. 댓글 상세 조회
+    public List<ReplyDto> findByBoardId(Integer boardId) {
+        return replyRepository.findByBoardEntity_BoardId(boardId)
                 .stream()
-                .map(ReplyEntity::toDto)
+                .map(ReplyEntity::toDto) // 이 메서드가 엔티티에 있다면 가능!
                 .toList();
     }
 }
