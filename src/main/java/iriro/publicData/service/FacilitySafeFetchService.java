@@ -61,7 +61,6 @@ public class FacilitySafeFetchService {
 
         try{
             for(int page=1;page<=totalPages;page++){
-                int pageNo = page;
 
                 // 쿼리 방식만 허용되는 API
                 String uri = safeHouseUrl
@@ -140,7 +139,9 @@ public class FacilitySafeFetchService {
             }
             System.out.println("[안심지킴이집 데이터 저장 완료]");
            return true;
-        }catch(Exception e){System.out.println("안심지킴이집 저장 실패: "+e);return false;}
+        }catch(Exception e){
+            System.out.println("안심지킴이집 저장 실패: "+e);
+            return false;}
     }
 
     // 경찰서 저장 (3000여 개 중 서울은 400여 개)

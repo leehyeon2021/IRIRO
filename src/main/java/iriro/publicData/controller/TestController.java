@@ -20,7 +20,6 @@ public class TestController {
     private final RefreshAllScheduler rf;
 
     // 저장 기능을 테스트하기 위한 컨트롤러입니다.
-
     @GetMapping("/test5")
     public ResponseEntity<Boolean> test5(){return ResponseEntity.ok(rf.refreshAllData()); }
 

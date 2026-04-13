@@ -30,7 +30,7 @@ public class GeocodingService {
 
             Map<String, Object> response = webClient.get()
                     .uri(java.net.URI.create(uri))
-                    .header("Authorization", "KakaoAK " + kakaoApiKey) // Bearer는 JWT 토큰 방식이래
+                    .header("Authorization", "KakaoAK " + kakaoApiKey)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
