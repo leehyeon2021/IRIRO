@@ -74,7 +74,7 @@ public class FacilitySafeFetchService {
                 // 쿼리 방식만 허용되는 API (한글 파라미터는 반드시 URI 인코딩 — 미인코딩 시 Connection reset 빈번)
                 URI requestUri = UriComponentsBuilder.fromUriString(safeHouseUrl)
                         .queryParam("serviceKey", pubServiceKey)
-                        .queryParam("pageNo", pageNo)
+                        .queryParam("pageNo", page)
                         .queryParam("numOfRows", numOfRows)
                         .queryParam("type", "JSON")
                         .queryParam("ctprvnNm", "서울특별시")
