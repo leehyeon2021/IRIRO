@@ -35,7 +35,7 @@ public class BoardEntity extends BaseTime {
     private UserEntity userEntity;
 
     // 로그 번호
-    @ManyToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn( name = "log_id")
     private LocationlogEntity locationlogEntity;
 
@@ -52,7 +52,15 @@ public class BoardEntity extends BaseTime {
                 .boardId(this.boardId)
                 .userId(this.userEntity != null ? this.userEntity.getUserId() : null)
                 // userEntity가 비어있지 않으면 아이디를 꺼내고, 비어있으면 null을 넣어라!
-                .logId(this.locationlogEntity.getLogId())
+
+                .logId(this.locationlogEntity != null ? this.locationlogEntity.getLogId() : null)
+                .startLatitude(this.locationlogEntity != null ? this.locationlogEntity.getStartLatitude() : null)
+                .startLongitude(this.locationlogEntity != null ? this.locationlogEntity.getStartLongitude() : null)
+                .endLatitude(this.locationlogEntity != null ? this.locationlogEntity.getEndLatitude() : null)
+                .endLongitude(this.locationlogEntity != null ? this.locationlogEntity.getEndLongitude() : null)
+                .total_distance(this.locationlogEntity != null ? this.locationlogEntity.getTotal_distance() : null)
+
+
                 .nickname(this.userEntity.getNickname())
                 .boardTitle(this.boardTitle)
                 .boardContent(this.boardContent)
