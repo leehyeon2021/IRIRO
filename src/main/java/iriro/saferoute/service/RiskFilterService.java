@@ -38,7 +38,7 @@ public class RiskFilterService {
                 double distance = geoFilterSvc.distanceMeter(secondLat, secondLng, point.getLatitude(), point.getLongitude());
                 if (distance < MERGE_DISTANCE_METER) { // 하나라도 50m 이하면 false
                     canAdd = false;
-                    point.setRiskCount(point.getRiskCount() + 1); // 위험 수 + 1
+                    point.setRiskCount(point.getRiskCount() + secondPoint.getRiskCount()); // 위험 수 + 1
                     break;
                 }
             }
