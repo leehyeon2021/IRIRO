@@ -8,6 +8,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Map;
 
 @Service
 
@@ -17,24 +20,20 @@ public class ReverseGeocodingService {
     @Value("${kakao.api-key}")
     private String kakaoApikey;
 
-    public String findAddress(String x , String y){
-        String fullUrl = "https://dapi.kakao.com/v2/local/geo/coord2address.json" + "?x=" + x + "&y=" + y;
+    // WebClient 선언
+    private final WebClient webClient = WebClient.builder().build();
 
+    public Map<String,Object> findAddress(String x , String y){
+        String uri = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
+        uri += "?x=" + x;
+        uri += "&y=" + y;
 
-        // 헤더 객체 생성
-        HttpHeaders headers = new HttpHeaders();
-
-        // 신분증(API key) 붙이기
-        headers.set("Authorization","KakaoAK " + kakaoApikey );
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate(); // RestTemplate : 외부 API 랑 통신할 때 쓰는 만능상자
-
-        // "이 주소(fullUrl)로, GET 방식으로, 신분증(entity) 들고 가서, 글자(String)로 받아와!"
-        ResponseEntity<String> response = restTemplate.exchange(fullUrl, HttpMethod.GET,entity, String.class);
-
-        // 카카오가 보내준 답장 내용(Body)을 리턴
-        return response.getBody();
+        return webClient.get()
+                .uri(uri)
+                .header("Authorization","KakaoAK " + kakaoApikey )
+                .retrieve() // 반환/통신/응답 결과 수신 함수
+                .bodyToMono(Map.class) // 반환 값을 자바 타입으로 변환 , 즉] 반환타입이 JSON 이면 MAP 받는다.
+                .block(); // 동기(처리가 끝날 때까지 대기상태) 방식으로 결과 반환
     }
 }
+
