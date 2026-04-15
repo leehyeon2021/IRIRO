@@ -45,7 +45,7 @@
 <img src="https://img.shields.io/badge/AI_Filtering-FF6C37?style=for-the-badge&logo=openai&logoColor=white"> <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white"> <img src="https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white">
 
 ## 4. 서비스 아키텍처
-![아키텍처 이미지](이미지경로)
+![아키텍처 이미지](https://github.com/leehyeon2021/IRIRO-back/blob/master/%EC%A0%95%EA%B7%9C%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%201%20(4%EC%A1%B0)%20-%20%EC%9D%B4%EB%A6%AC%EB%A1%9C%20(1).png)
 
 ## 5. 시연영상 링크
 [시연영상](https://youtu.be/AKQrR80x6Bg)
