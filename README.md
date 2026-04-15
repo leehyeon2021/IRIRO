@@ -48,7 +48,7 @@
 ![아키텍처 이미지](이미지경로)
 
 ## 5. 시연영상 링크
-(https://youtu.be/AKQrR80x6Bg)
+[시연영상](https://youtu.be/AKQrR80x6Bg)
 
 ## 6. 참고 링크
 
