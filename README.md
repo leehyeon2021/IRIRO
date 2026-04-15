@@ -54,7 +54,7 @@
 
 ### SPRING GIT REPOSITORY(Back):<https://github.com/leehyeon2021/IRIRO-back>
 ### REACT GIT REPOSITORY(Front):<https://github.com/leehyeon2021/IRIRO-front>
-### API 명세서: <여기다 구글시트 링크를 넣으면 되나요?>
+### API 명세서: (https://docs.google.com/spreadsheets/d/1yE2HPUQfDc3MhCYkLqFlgSMiOuCeDME2OY2jiUvfbOQ/edit?pli=1&gid=1025466810#gid=1025466810)
 ### 디자인(Figma):<https://www.figma.com/design/y6Z3AUUDNcN1ZgDiusn0p6/%EC%A0%95%EA%B7%9C-4%EC%A1%B0-%ED%99%94%EC%9D%B4%ED%8C%85---?node-id=4-3&t=9PDtrDXxyKiTCI7n-0>
 ### ppt:<https://www.canva.com/design/DAHGs3uwaoI/xmaIf_GOdktfPgK6yi6dkw/edit>
 
